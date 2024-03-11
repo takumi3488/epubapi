@@ -6,8 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 
 jobs:
   build:
@@ -31,11 +29,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
+      - name: Extract Docker metadata (server)
+        id: meta-server
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/epubapi-server
 
       - name: Build and push Docker image (server)
         id: build-and-push-server
@@ -43,8 +41,14 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}-server
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/epubapi-server:${{ github.sha }}
+          labels: ${{ steps.meta-server.outputs.labels }}
+
+      - name: Extract Docker metadata (get_metadata)
+        id: meta-get_metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/epubapi-get_metadata)
 
       - name: Build and push Docker image (get_metadata)
         id: build-and-push-get_metadata
@@ -53,9 +57,15 @@ jobs:
           context: .
           file: Dockerfile.get_metadata
           push: true
-          tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}-get_metadata
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/epubapi-server:${{ github.sha }}-get_metadata
+          labels: ${{ steps.meta-get_metadata.outputs.labels }}
       
+      - name: Extract Docker metadata (img2epub)
+        id: meta-img2epub
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/epubapi-img2epub
+
       - name: Build and push Docker image (img2epub)
         id: build-and-push-img2epub
         uses: docker/build-push-action@v5
@@ -63,5 +73,5 @@ jobs:
           context: .
           file: Dockerfile.img2epub
           push: true
-          tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}-img2epub
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/epubapi-server:${{ github.sha }}-img2epub
+          labels: ${{ steps.meta-img2epub.outputs.labels }}
