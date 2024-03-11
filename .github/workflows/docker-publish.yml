@@ -46,14 +46,14 @@ jobs:
           tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}-server
           labels: ${{ steps.meta.outputs.labels }}
 
-      - name: Build and push Docker image (gen_metadata)
-        id: build-and-push-gen_metadata
+      - name: Build and push Docker image (get_metadata)
+        id: build-and-push-get_metadata
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.gen_metadata
+          file: Dockerfile.get_metadata
           push: true
-          tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}-gen_metadata
+          tags: ghcr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}-get_metadata
           labels: ${{ steps.meta.outputs.labels }}
       
       - name: Build and push Docker image (img2epub)
