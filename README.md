@@ -7,6 +7,7 @@
 ## 実行ファイル
 
 - `server`: Webサーバー
+- `gen_metadata`: 
 - `img2epub`: 
 
 ## 環境変数
