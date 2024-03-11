@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO users (id, password, role) VALUES ($1, $2, $3) returning api_key",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "api_key",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        {
+          "Custom": {
+            "name": "user_role",
+            "kind": {
+              "Enum": [
+                "admin",
+                "user"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "5d0d60f26ece8d33cef46d845425ab096ba4505d49fb23180ea503f9434d1f4d"
+}

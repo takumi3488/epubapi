@@ -1,0 +1,12 @@
+compose.yml
+Dockerfile
+Dockerfile.*
+openapi.json
+README.md
+target
+Taskfile.yml
+test_assets
+
+.env
+.git
+.gitinogre

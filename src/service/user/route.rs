@@ -1,0 +1,230 @@
+use axum::{
+    body::Body,
+    extract::State,
+    http::{header::SET_COOKIE, StatusCode},
+    response::{AppendHeaders, IntoResponse},
+    Json,
+};
+use sqlx::PgPool;
+
+use super::model;
+
+#[utoipa::path(
+    post,
+    path = "/users",
+    request_body = NewUserRequest,
+    responses(
+        (status = 200, description = "OK"),
+        (status = 400, description = "Bad Request", body = UserError, example = json!(model::UserError::InvalidIdOrPassword(String::from("IDかパスワードが不正です")))),
+    )
+)]
+pub async fn new_user(
+    State(db): State<PgPool>,
+    Json(body): Json<model::NewUserRequest>,
+) -> impl IntoResponse {
+    // ユーザー登録処理
+    if let Err(e) = model::create_user(&body.id, &body.password, &body.invitation_code, &db).await {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(model::UserError::InvalidInvitationCode(e.to_string())),
+        )
+            .into_response();
+    }
+
+    // JWTの生成
+    let jwt = model::id_to_jwt(&body.id);
+
+    (
+        StatusCode::NO_CONTENT,
+        AppendHeaders([(
+            SET_COOKIE,
+            format!(
+                "token={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=Lax;",
+                jwt,
+                3600 * 24 * 30
+            ),
+        )]),
+        Body::empty(),
+    )
+        .into_response()
+}
+
+// ログイン
+#[utoipa::path(
+    post,
+    path = "/login",
+    responses(
+        (status = 204),
+        (status = 400, description = "Bad Request", body = UserError, example = json!(model::UserError::InvalidIdOrPassword(String::from("invalid id or password")))),
+    )
+)]
+pub async fn login(
+    State(db): State<PgPool>,
+    Json(body): Json<model::LoginRequest>,
+) -> impl IntoResponse {
+    let jwt = match model::varify_password(db, &body.id, &body.password).await {
+        Ok(jwt) => jwt,
+        Err(err) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(model::UserError::InvalidIdOrPassword(err)),
+            )
+                .into_response();
+        }
+    };
+
+    (
+        StatusCode::NO_CONTENT,
+        AppendHeaders([(
+            SET_COOKIE,
+            format!(
+                "token={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=Lax;",
+                jwt,
+                3600 * 24 * 30
+            ),
+        )]),
+        Body::empty(),
+    )
+        .into_response()
+}
+
+#[cfg(test)]
+mod tests {
+    use axum::{
+        body::Body,
+        http::{header, Method, Request},
+    };
+    use serde_json::{json, to_string};
+    use sqlx::{self, PgPool};
+    use tower::ServiceExt;
+
+    use crate::routes::routes::init_app;
+
+    #[sqlx::test(fixtures("users", "invitations"))]
+    async fn test_new_user(pool: PgPool) {
+        let router = init_app(&pool);
+
+        // ユーザー登録 無効なidもしくはpasswordの場合
+        let req = Request::builder()
+            .uri("/users")
+            .method(Method::POST)
+            .header(header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
+            .body(Body::from(
+                to_string(&json!(
+                    {
+                        "id": "test",
+                        "password": "test",
+                        "invitation_code": "unused_test_code"
+                    }
+                ))
+                .unwrap(),
+            ))
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 400);
+
+        // IDが使用済みの場合
+        let req = Request::builder()
+            .uri("/users")
+            .method(Method::POST)
+            .header(header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
+            .body(Body::from(
+                to_string(&json!(
+                    {
+                        "id": "used_id",
+                        "password": "Test1234",
+                        "invitation_code": "unused_test_code"
+                    }
+                ))
+                .unwrap(),
+            ))
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 400);
+
+        // ユーザー登録 成功した場合
+        let req = Request::builder()
+            .uri("/users")
+            .method(Method::POST)
+            .header(header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
+            .body(Body::from(
+                to_string(&json!(
+                    {
+                        "id": "unused_id",
+                        "password": "Test1234",
+                        "invitation_code": "unused_test_code"
+                    }
+                ))
+                .unwrap(),
+            ))
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 204);
+        let headers = res.headers();
+        let cookie = headers.get(header::SET_COOKIE).unwrap();
+        assert!(cookie.to_str().unwrap().contains("token="));
+
+        // ユーザー登録 招待コードが無効な場合
+        let req = Request::builder()
+            .uri("/users")
+            .method(Method::POST)
+            .header(header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
+            .body(Body::from(
+                to_string(&json!(
+                    {
+                        "id": "test2",
+                        "password": "Test1234",
+                        "invitation_code": "used_test_code"
+                    }
+                ))
+                .unwrap(),
+            ))
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 400);
+    }
+
+    #[sqlx::test(fixtures("users", "invitations"))]
+    async fn test_login(pool: PgPool) {
+        let router = init_app(&pool);
+
+        // ログイン 無効なidもしくはpasswordの場合
+        let req = Request::builder()
+            .uri("/login")
+            .method(Method::POST)
+            .header(header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
+            .body(Body::from(
+                to_string(&json!(
+                    {
+                        "id": "test",
+                        "password": "test"
+                    }
+                ))
+                .unwrap(),
+            ))
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 400);
+
+        // ログイン 成功した場合
+        let req = Request::builder()
+            .uri("/login")
+            .method(Method::POST)
+            .header(header::CONTENT_TYPE, mime::APPLICATION_JSON.as_ref())
+            .body(Body::from(
+                to_string(&json!(
+                    {
+                        "id": "used_id",
+                        "password": "Test1234"
+                    }
+                ))
+                .unwrap(),
+            ))
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 204);
+        let headers = res.headers();
+        let cookie = headers.get(header::SET_COOKIE).unwrap();
+        assert!(cookie.to_str().unwrap().contains("token="));
+    }
+}

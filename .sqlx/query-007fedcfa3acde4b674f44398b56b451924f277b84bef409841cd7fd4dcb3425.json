@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE books\n            SET visibility = $1\n            WHERE key = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "visibility",
+            "kind": {
+              "Enum": [
+                "public",
+                "private"
+              ]
+            }
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "007fedcfa3acde4b674f44398b56b451924f277b84bef409841cd7fd4dcb3425"
+}

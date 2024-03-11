@@ -1,0 +1,756 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "epubapi",
+    "description": "",
+    "license": {
+      "name": ""
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "self"
+        ],
+        "summary": "ヘルスチェック",
+        "description": "ヘルスチェック",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/books": {
+      "get": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "閲覧可能なbook一覧を取得する",
+        "description": "閲覧可能なbook一覧を取得する\npage: ページ番号\nkeyword: タイトル・著者名での検索キーワード",
+        "operationId": "get_books",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true,
+              "minimum": 0
+            },
+            "style": "form"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "style": "form"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "bookを新規作成する",
+        "description": "bookを新規作成する\n\ncookieではなく、ヘッダーにX-Api-Keyを設定する必要がある",
+        "operationId": "new_book",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/model.Epub"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Save book file"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "invalid id or password": "incorrect api key"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{book_key}": {
+      "delete": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "bookを削除する",
+        "description": "bookを削除する",
+        "operationId": "delete_book",
+        "parameters": [
+          {
+            "name": "book_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "bookを更新する",
+        "description": "bookを更新する",
+        "operationId": "update_book",
+        "parameters": [
+          {
+            "name": "book_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.UpdateBookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{book_key}/tags": {
+      "post": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "bookにtagを追加する",
+        "description": "bookにtagを追加する",
+        "operationId": "add_tag_to_book",
+        "parameters": [
+          {
+            "name": "book_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.AddTagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{book_key}/tags/{tag_name}": {
+      "delete": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "bookからtagを削除する",
+        "description": "bookからtagを削除する",
+        "operationId": "delete_tag_from_book",
+        "parameters": [
+          {
+            "name": "book_key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/check_invitation": {
+      "post": {
+        "tags": [
+          "crate::service::invitation::route"
+        ],
+        "operationId": "check_invitation",
+        "requestBody": {
+          "description": "",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/model.CheckInvitationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckInvitationResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "tags": [
+          "crate::service::tag::route"
+        ],
+        "operationId": "get_tags",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/model.Tag"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "crate::service::tag::route"
+        ],
+        "operationId": "new_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewTagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/tags/{name}": {
+      "delete": {
+        "tags": [
+          "crate::service::tag::route"
+        ],
+        "operationId": "delete_tag",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/tags/{old}": {
+      "put": {
+        "tags": [
+          "crate::service::tag::route"
+        ],
+        "operationId": "update_tag",
+        "parameters": [
+          {
+            "name": "old",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewTagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "tags": [
+          "crate::service::user::route"
+        ],
+        "operationId": "new_user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewUserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "invalid id or password": "IDかパスワードが不正です"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddTagRequest": {
+        "type": "object",
+        "required": [
+          "tag_name"
+        ],
+        "properties": {
+          "tag_name": {
+            "type": "string"
+          }
+        }
+      },
+      "Book": {
+        "type": "object",
+        "required": [
+          "key",
+          "owner_id",
+          "name",
+          "creator",
+          "publisher",
+          "date",
+          "cover_image",
+          "visibility",
+          "created_at"
+        ],
+        "properties": {
+          "cover_image": {
+            "type": "string",
+            "format": "binary"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "creator": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          }
+        }
+      },
+      "BookQuery": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "minimum": 0
+          },
+          "tag": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CheckInvitationRequest": {
+        "type": "object",
+        "description": "`POST /check_invitation` のリクエストボディ",
+        "required": [
+          "invitation_code"
+        ],
+        "properties": {
+          "invitation_code": {
+            "type": "string"
+          }
+        }
+      },
+      "CheckInvitationResponse": {
+        "type": "object",
+        "description": "`POST /check_invitation` のレスポンス",
+        "required": [
+          "state"
+        ],
+        "properties": {
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "DeleteBookRequest": {
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          }
+        }
+      },
+      "DeleteTagRequest": {
+        "type": "object",
+        "required": [
+          "tag_name"
+        ],
+        "properties": {
+          "tag_name": {
+            "type": "string"
+          }
+        }
+      },
+      "Epub": {
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/File"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "password"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "NewTagRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "NewUserRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "password",
+          "invitation_code"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "invitation_code": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "required": [
+          "name",
+          "book_count"
+        ],
+        "properties": {
+          "book_count": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateBookRequest": {
+        "type": "object",
+        "required": [
+          "visibility"
+        ],
+        "properties": {
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          }
+        }
+      },
+      "UserError": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "unauthorized"
+            ],
+            "properties": {
+              "unauthorized": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "invalid id or password"
+            ],
+            "properties": {
+              "invalid id or password": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "invalid invitation code"
+            ],
+            "properties": {
+              "invalid invitation code": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "Visibility": {
+        "type": "string",
+        "enum": [
+          "public",
+          "private"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "epubapi",
+      "description": "EPUB management API"
+    }
+  ]
+}

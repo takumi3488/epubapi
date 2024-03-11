@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE invitations SET state = 'unused', used_at = null WHERE code = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "78d7571cdfb793e37569d53bdfd6c21e03f59848a002d4ecf9e9b1b677eaf00e"
+}

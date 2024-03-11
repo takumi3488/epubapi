@@ -1,0 +1,39 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                state as \"state: InvitationState\",\n                used_at\n            FROM invitations\n            WHERE\n                code = $1\n                AND\n                state != 'used'\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state: InvitationState",
+        "type_info": {
+          "Custom": {
+            "name": "invitation_state",
+            "kind": {
+              "Enum": [
+                "unused",
+                "using",
+                "used"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "used_at",
+        "type_info": "Timestamp"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true
+    ]
+  },
+  "hash": "87a2576510ccc45e0db170f85ecee1df5da7ad19f2392589a467bef0407ccff5"
+}

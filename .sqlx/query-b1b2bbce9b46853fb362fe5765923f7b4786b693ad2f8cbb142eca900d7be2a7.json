@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT t.name AS name,\n                COUNT(DISTINCT bt.book_key) AS book_count\n                FROM tags t\n                LEFT JOIN book_tags bt ON bt.tag_name = t.name\n                LEFT JOIN books b ON b.key = bt.book_key\n                WHERE b.owner_id = $1 OR b.visibility = 'public'\n                GROUP BY t.name;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "book_count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "b1b2bbce9b46853fb362fe5765923f7b4786b693ad2f8cbb142eca900d7be2a7"
+}

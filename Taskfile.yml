@@ -1,0 +1,48 @@
+version: "3"
+
+dotenv:
+  - .env
+
+tasks:
+  default:
+    cmds:
+      - task: rebuild
+      - cargo run --bin img2epub
+      - cargo run --bin get_metadata
+      - task: test
+      - rm -f test_assets/test.tar.gz
+
+  serve:
+    cmds:
+      - task: up
+      - task: run
+
+  schema:
+    cmds:
+      - cargo run --bin gen_schema > openapi.json
+
+  test:
+    cmds:
+      - cargo test
+
+  rebuild:
+    cmds:
+      - docker compose down
+      - sh -c "cd test_assets && rm -f test.tar.gz && tar -czvf test.tar.gz metadata.json test1.png test2.png && cd .."
+      - task: up
+
+  up:
+    cmds:
+      - docker compose up --build -d minio postgres
+      - docker compose up --build create_bucket
+      - cargo build
+      - task: sqlx
+      - task: schema
+
+  run:
+    cmds:
+      - cargo run
+
+  sqlx:
+    cmds:
+      - cargo sqlx prepare --database-url ${DATABASE_URL}

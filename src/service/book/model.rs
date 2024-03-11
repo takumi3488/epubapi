@@ -1,0 +1,244 @@
+use axum::extract::Multipart;
+use serde::{Deserialize, Serialize};
+use sqlx::{types::chrono::NaiveDateTime, PgPool};
+use utoipa::{IntoParams, ToSchema};
+
+use crate::service::user::model::is_admin;
+
+#[derive(Serialize, Deserialize, Debug, sqlx::Type, ToSchema)]
+#[sqlx(type_name = "visibility", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
+pub enum Visibility {
+    Public,
+    Private,
+}
+
+#[derive(sqlx::FromRow, Debug, ToSchema, Serialize)]
+pub struct Book {
+    pub key: String,
+    pub owner_id: String,
+    pub name: String,
+    pub creator: String,
+    pub publisher: String,
+    pub date: String,
+    pub cover_image: Vec<u8>,
+    pub visibility: Visibility,
+    #[schema(value_type = String, format = Date)]
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(Serialize, Deserialize, ToSchema, IntoParams, Clone)]
+#[into_params(style = Form, parameter_in = Query)]
+pub struct BookQuery {
+    pub page: Option<u32>,
+    pub keyword: Option<String>,
+    pub tag: Option<String>,
+}
+
+#[derive(ToSchema)]
+pub struct Epub {
+    #[schema(value_type = File, format = "binary")]
+    pub file: Multipart,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct AddTagRequest {
+    pub tag_name: String,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct DeleteTagRequest {
+    pub tag_name: String,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct UpdateBookRequest {
+    pub visibility: Visibility,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct DeleteBookRequest {
+    pub key: String,
+}
+
+pub async fn get_books(
+    user_id: &str,
+    query: BookQuery,
+    db: &PgPool,
+) -> Result<Vec<Book>, sqlx::Error> {
+    sqlx::query_as!(
+        Book,
+        r#"
+            SELECT
+                key,
+                owner_id,
+                name,
+                creator,
+                publisher,
+                date,
+                cover_image,
+                visibility as "visibility: _",
+                created_at
+            FROM books
+            WHERE
+                (
+                    owner_id = $1
+                    OR visibility = 'public'
+                ) AND (
+                    name ILIKE $2
+                    OR creator ILIKE $2
+                ) AND (
+                    $3 = ''
+                    OR EXISTS (
+                        SELECT 1
+                        FROM book_tags
+                        WHERE book_tags.book_key = books.key
+                        AND book_tags.tag_name = $3
+                    )
+                )
+            ORDER BY created_at DESC
+            LIMIT 100 OFFSET $4
+        "#,
+        user_id,
+        query
+            .keyword
+            .map(|k| format!("%{}%", k))
+            .unwrap_or("%%".to_string()),
+        query.tag.unwrap_or("".to_string()),
+        ((query.page.unwrap_or(1) - 1) * 100) as i32,
+    )
+    .fetch_all(db)
+    .await
+}
+
+pub async fn add_tag(
+    book_key: &str,
+    tag_name: &str,
+    user_id: &str,
+    db: &PgPool,
+) -> Result<(), sqlx::Error> {
+    let book = sqlx::query!(
+        r#"
+            SELECT owner_id
+            FROM books
+            WHERE key = $1
+        "#,
+        book_key
+    )
+    .fetch_one(db)
+    .await?;
+
+    if book.owner_id != user_id && !is_admin(db, user_id).await {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
+    sqlx::query!(
+        r#"
+            INSERT INTO book_tags (book_key, tag_name)
+            VALUES ($1, $2)
+        "#,
+        book_key,
+        tag_name
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+pub async fn delete_tag_from_book(
+    book_key: &str,
+    tag_name: &str,
+    user_id: &str,
+    db: &PgPool,
+) -> Result<(), sqlx::Error> {
+    let book = sqlx::query!(
+        r#"
+            SELECT owner_id
+            FROM books
+            WHERE key = $1
+        "#,
+        book_key
+    )
+    .fetch_one(db)
+    .await?;
+
+    if book.owner_id != user_id && !is_admin(db, user_id).await {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
+    sqlx::query!(
+        r#"
+            DELETE FROM book_tags
+            WHERE book_key = $1
+            AND tag_name = $2
+        "#,
+        book_key,
+        tag_name
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+pub async fn update_book(
+    book_key: &str,
+    user_id: &str,
+    req: UpdateBookRequest,
+    db: &PgPool,
+) -> Result<(), sqlx::Error> {
+    let book = sqlx::query!(
+        r#"
+            SELECT owner_id
+            FROM books
+            WHERE key = $1
+        "#,
+        book_key
+    )
+    .fetch_one(db)
+    .await?;
+
+    if book.owner_id != user_id && !is_admin(db, user_id).await {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
+    sqlx::query!(
+        r#"
+            UPDATE books
+            SET visibility = $1
+            WHERE key = $2
+        "#,
+        req.visibility as Visibility,
+        book_key
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+pub async fn delete_book(book_key: &str, user_id: &str, db: &PgPool) -> Result<(), sqlx::Error> {
+    let book = sqlx::query!(
+        r#"
+            SELECT owner_id
+            FROM books
+            WHERE key = $1
+        "#,
+        book_key
+    )
+    .fetch_one(db)
+    .await?;
+
+    if book.owner_id != user_id && !is_admin(db, user_id).await {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
+    sqlx::query!(
+        r#"
+            DELETE FROM books
+            WHERE key = $1
+        "#,
+        book_key
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}

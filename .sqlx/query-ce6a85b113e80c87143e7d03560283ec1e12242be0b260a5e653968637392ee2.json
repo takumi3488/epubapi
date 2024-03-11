@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE tags\n            SET name = $1\n            WHERE name = $2\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ce6a85b113e80c87143e7d03560283ec1e12242be0b260a5e653968637392ee2"
+}
