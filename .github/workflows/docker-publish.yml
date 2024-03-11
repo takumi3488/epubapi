@@ -57,7 +57,7 @@ jobs:
           context: .
           file: Dockerfile.get_metadata
           push: true
-          tags: ghcr.io/takumi3488/epubapi-server:${{ github.sha }}-get-metadata
+          tags: ghcr.io/takumi3488/epubapi-get-metadata:${{ github.sha }}
           labels: ${{ steps.meta-get_metadata.outputs.labels }}
       
       - name: Extract Docker metadata (img2epub)
@@ -73,5 +73,5 @@ jobs:
           context: .
           file: Dockerfile.img2epub
           push: true
-          tags: ghcr.io/takumi3488/epubapi-server:${{ github.sha }}-img2epub
+          tags: ghcr.io/takumi3488/epubapi-img2epub:${{ github.sha }}
           labels: ${{ steps.meta-img2epub.outputs.labels }}
