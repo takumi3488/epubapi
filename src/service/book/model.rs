@@ -1,3 +1,5 @@
+use std::env;
+
 use axum::extract::Multipart;
 use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, PgPool};
@@ -229,6 +231,17 @@ pub async fn delete_book(book_key: &str, user_id: &str, db: &PgPool) -> Result<(
 
     if book.owner_id != user_id && !is_admin(db, user_id).await {
         return Err(sqlx::Error::RowNotFound);
+    }
+
+    let minio_client = crate::minio::minio::get_client().await;
+    if let Err(e) = minio_client
+        .delete_object()
+        .bucket(env::var("EPUB_BUCKET").unwrap())
+        .key(book_key)
+        .send()
+        .await
+    {
+        log::error!("Failed to delete object: {}", e);
     }
 
     sqlx::query!(
