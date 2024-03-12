@@ -62,6 +62,8 @@ jobs:
           push: true
           tags: ghcr.io/takumi3488/epubapi-get-metadata:${{ github.sha }}
           labels: ${{ steps.meta-get_metadata.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       
       - name: Extract Docker metadata (img2epub)
         id: meta-img2epub
@@ -79,3 +81,5 @@ jobs:
           push: true
           tags: ghcr.io/takumi3488/epubapi-img2epub:${{ github.sha }}
           labels: ${{ steps.meta-img2epub.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
