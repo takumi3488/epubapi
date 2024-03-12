@@ -1,8 +1,17 @@
-FROM rust:1.74-bookworm AS builder
+FROM rust:1.76-bookworm AS chef 
+RUN cargo install cargo-chef 
 WORKDIR /app
+
+FROM chef AS planner
 COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates musl-tools
 RUN update-ca-certificates
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
 RUN rustup target add "$(uname -m)"-unknown-linux-musl
 RUN cargo build --bin get_metadata --bin img2epub --bin server --release --target "$(uname -m)"-unknown-linux-musl
 RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/get_metadata -o /get_metadata
