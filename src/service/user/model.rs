@@ -18,13 +18,13 @@ pub enum UserRole {
     User,
 }
 
-#[derive(sqlx::FromRow, Debug, Serialize)]
+#[derive(sqlx::FromRow, Debug, Serialize, ToSchema)]
 pub struct User {
     pub id: String,
     pub password: String,
     pub role: UserRole,
     pub api_key: String,
-    pub invitation_points: i64,
+    pub invitations: Vec<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -41,6 +41,11 @@ pub enum UserError {
     InvalidIdOrPassword(String),
     #[serde(rename = "invalid invitation code")]
     InvalidInvitationCode(String),
+}
+
+#[derive(Serialize, Deserialize, ToSchema)]
+pub struct ShowUserRequest {
+    pub id: String,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -205,20 +210,11 @@ pub async fn create_user(
 
     // ID(英数字と-と_で2文字以上), パスワード(英数字と記号で8文字以上)の確認
     let id_regex = Regex::new(r#"^[a-zA-Z0-9_-]{2,40}$"#).unwrap();
-    let password_regex =
-        Regex::new(r#"^[a-zA-Z0-9_+-=\.,:;!\?@#$%\^&\\\*\(\)\[\]\{\}]{8,40}$"#).unwrap();
-    let lowercase_regex = Regex::new(r#"[a-z]"#).unwrap();
-    let uppercase_regex = Regex::new(r#"[A-Z]"#).unwrap();
-    let number_regex = Regex::new(r#"[0-9]"#).unwrap();
-    if (!id_regex.is_match(&id) || !password_regex.is_match(&password))
-        && (lowercase_regex.is_match(&password)
-            || uppercase_regex.is_match(&password)
-            || number_regex.is_match(&password))
-    {
-        return Err(r#"IDは2文字以上で英数字,-,_が使用できます。
-        パスワードは8文字以上で英数字と記号が使用できます。
-        パスワードには大文字,小文字,数字をそれぞれ1文字以上含める必要があります。"#
-            .to_string());
+    if !id_regex.is_match(&id) {
+        return Err("IDは2文字以上で英数字,-,_のみを使用してください".to_string());
+    }
+    if password.chars().count() < 8 {
+        return Err("パスワードは8文字以上で入力してください".to_string());
     }
 
     // トランザクションの開始
@@ -230,14 +226,13 @@ pub async fn create_user(
     // ユーザーの作成
     if let Err(e) = sqlx::query!(
         r#"
-            INSERT INTO users (id, password, role, api_key, invitation_points)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO users (id, password, role, api_key)
+            VALUES ($1, $2, $3, $4)
         "#,
         id,
         password,
         UserRole::User as UserRole,
         Uuid::new_v4().to_string(),
-        0,
     )
     .execute(&mut **(&mut transaction))
     .await
@@ -267,4 +262,35 @@ pub async fn create_user(
     }
 
     Ok(())
+}
+
+/// ユーザー情報の取得
+pub async fn show_user(id: &str, db: &PgPool) -> Result<User, sqlx::Error> {
+    let user = sqlx::query!(
+        r#"
+            SELECT id, password, role as "role: UserRole", api_key
+            FROM users
+            WHERE id = $1
+        "#,
+        id
+    )
+    .fetch_one(db)
+    .await?;
+    let invitations = sqlx::query!(
+        r#"
+            SELECT code
+            FROM invitations
+            WHERE issuer_id = $1
+        "#,
+        id
+    )
+    .fetch_all(db)
+    .await?;
+    Ok(User {
+        id: user.id,
+        password: user.password,
+        role: user.role,
+        api_key: user.api_key,
+        invitations: invitations.iter().map(|i| i.code.clone()).collect(),
+    })
 }

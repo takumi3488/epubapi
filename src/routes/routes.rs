@@ -12,7 +12,7 @@ use crate::service::{
     },
     invitation::route::check_invitation,
     tag::route::{delete_tag, get_tags, new_tag, update_tag},
-    user::route::{login, new_user},
+    user::route::{show_user, login, new_user},
 };
 
 #[derive(OpenApi)]
@@ -22,6 +22,7 @@ use crate::service::{
         crate::service::book::route::new_book,
         crate::service::invitation::route::check_invitation,
         crate::service::user::route::new_user,
+        crate::service::user::route::show_user,
         crate::service::tag::route::get_tags,
         crate::service::tag::route::new_tag,
         crate::service::tag::route::update_tag,
@@ -38,6 +39,8 @@ use crate::service::{
             crate::service::invitation::model::CheckInvitationRequest,
             crate::service::invitation::model::CheckInvitationResponse,
             crate::service::user::model::UserError,
+            crate::service::user::model::User,
+            crate::service::user::model::ShowUserRequest,
             crate::service::user::model::NewUserRequest,
             crate::service::user::model::LoginRequest,
             crate::service::tag::model::Tag,
@@ -50,7 +53,6 @@ use crate::service::{
             crate::service::book::model::AddTagRequest,
             crate::service::book::model::DeleteTagRequest,
             crate::service::book::model::DeleteBookRequest,
-            
         )
     ),
     tags(
@@ -63,7 +65,7 @@ pub struct ApiDoc;
 pub fn init_app(db: &sqlx::PgPool) -> Router {
     Router::new()
         .route("/", get(health))
-        .route("/users", post(new_user))
+        .route("/users", get(show_user).post(new_user))
         .route("/login", post(login))
         .route("/epubs", post(new_book))
         .route("/check_invitation", post(check_invitation))

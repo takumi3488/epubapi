@@ -459,6 +459,39 @@
       }
     },
     "/users": {
+      "get": {
+        "tags": [
+          "crate::service::user::route"
+        ],
+        "summary": "ユーザー情報を取得",
+        "description": "ユーザー情報を取得",
+        "operationId": "show_user",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "認証に失敗しました"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "crate::service::user::route"
@@ -674,6 +707,17 @@
           }
         }
       },
+      "ShowUserRequest": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
       "Tag": {
         "type": "object",
         "required": [
@@ -698,6 +742,36 @@
         "properties": {
           "visibility": {
             "$ref": "#/components/schemas/Visibility"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "password",
+          "role",
+          "api_key",
+          "invitations"
+        ],
+        "properties": {
+          "api_key": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "invitations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
           }
         }
       },
