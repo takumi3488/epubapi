@@ -44,6 +44,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         // オブジェクトのダウンロード
         let key = object.key.unwrap();
+        if !key.ends_with(".tar.gz") {
+            println!("Skip: {}", key);
+            continue;
+        }
         let body = minio_client
             .get_object()
             .bucket(images_bucket)

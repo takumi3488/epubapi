@@ -23,9 +23,10 @@ COPY --from=builder /get_metadata /get_metadata
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 ENTRYPOINT ["/get_metadata"]
 
-FROM scratch AS img2epub
+FROM alpine AS img2epub
 COPY --from=builder /img2epub /img2epub
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+RUN apk add --no-cache ca-certificates tar zip
+RUN update-ca-certificates
 ENTRYPOINT ["/img2epub"]
 
 FROM scratch AS server

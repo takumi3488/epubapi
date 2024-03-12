@@ -55,3 +55,11 @@ tasks:
   sqlx:
     cmds:
       - cargo sqlx prepare --database-url ${DATABASE_URL}
+
+  all:
+    cmds:
+      - task: rebuild
+      - docker compose run --rm img2epub
+      - docker compose run --rm get_metadata
+      - task: test
+      - rm -f test_assets/test.tar.gz

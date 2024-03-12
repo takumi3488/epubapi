@@ -1,4 +1,63 @@
 services:
+  server:
+    build:
+      context: .
+      target: server
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/epubapi"
+      IMAGES_BUCKET: "images-bucket"
+      EPUB_BUCKET: "epub-bucket"
+      S3_ENDPOINT: "http://minio:9000"
+      ADMIN_ID: "test_admin_id"
+      ADMIN_PASSWORD: "test_admin_password"
+      JWT_SECRET: "jwt_secret"
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: minio123
+    ports:
+      - 3000:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+  
+  img2epub:
+    build:
+      context: .
+      target: img2epub
+    environment:
+      S3_ENDPOINT: "http://minio:9000"
+      IMAGES_BUCKET: "images-bucket"
+      EPUB_BUCKET: "epub-bucket"
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: minio123
+    volumes:
+      - ./test_assets:/test_assets
+    depends_on:
+      minio:
+        condition: service_healthy
+
+  get_metadata:
+    build:
+      context: .
+      target: get_metadata
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/epubapi"
+      S3_ENDPOINT: "http://minio:9000"
+      EPUB_BUCKET: "epub-bucket"
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: minio123
+    volumes:
+      - ./test_assets:/test_assets
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
   postgres:
     image: postgres:latest
     environment:
