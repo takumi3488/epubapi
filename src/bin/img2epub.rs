@@ -24,12 +24,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let minio_client = get_client().await;
 
     // images_bucketに未処理のオブジェクトがあれば処理する
-    let objects = minio_client
+    let objects = match minio_client
         .list_objects_v2()
         .bucket(images_bucket)
         .send()
         .await?
-        .contents?;
+        .contents
+    {
+        Some(objects) => objects,
+        None => {
+            println!("No objects to process");
+            return Ok(());
+        }
+    };
 
     for object in objects {
         let uuid = Uuid::new_v4();
