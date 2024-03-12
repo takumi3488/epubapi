@@ -29,8 +29,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .bucket(images_bucket)
         .send()
         .await?
-        .contents
-        .unwrap();
+        .contents?;
 
     for object in objects {
         let uuid = Uuid::new_v4();
