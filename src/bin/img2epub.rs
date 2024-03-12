@@ -28,7 +28,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .list_objects_v2()
         .bucket(images_bucket)
         .send()
-        .await?
+        .await
+        .expect("Failed to list objects")
         .contents
     {
         Some(objects) => objects,
@@ -48,7 +49,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .bucket(images_bucket)
             .key(&key)
             .send()
-            .await?
+            .await
+            .expect("Failed to download object")
             .body;
 
         // .tar.gzを.epubに変換する
@@ -97,9 +99,11 @@ async fn convert_to_epub(
     name: &str,           // .tar.gzのファイル名
     out: &str,            // epubのファイル名
 ) -> Result<ByteStream, Box<dyn Error>> {
+    println!("Start converting to epub: {} → {}", name, out);
+
     // 作業ディレクトリを作成する
     let work_dir = format!("/tmp/{}", uuid);
-    create_dir_all(&work_dir)?;
+    create_dir_all(&work_dir).expect("Failed to create work directory");
 
     // .tar.gzを保存する
     let tar_path = format!("{}/{}", work_dir, name);
