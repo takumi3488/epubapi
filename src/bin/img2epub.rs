@@ -117,21 +117,23 @@ async fn convert_to_epub(
         .arg("-xvf")
         .arg(&name)
         .current_dir(&work_dir)
-        .spawn()?
-        .wait()?;
+        .spawn()
+        .expect("Failed to execute command")
+        .wait()
+        .expect("Failed to wait for command");
 
     // 解凍したファイルをepubに変換する
     let out = format!("{}/{}", work_dir, out);
-    img2epub(&work_dir, &out, None, None, None, None, None)?;
+    img2epub(&work_dir, &out, None, None, None, None, None).expect("Failed to convert to epub");
 
     // ByteStreamに変換する
-    let mut file = File::open(&out)?;
+    let mut file = File::open(&out).expect("Failed to open file");
     let mut buf = Vec::new();
-    file.read_to_end(&mut buf)?;
+    file.read_to_end(&mut buf).expect("Failed to read file");
     let bs = ByteStream::from(buf);
 
     // 作業ディレクトリを削除する
-    remove_dir_all(&work_dir)?;
+    remove_dir_all(&work_dir).expect("Failed to remove work directory");
 
     Ok(bs)
 }
