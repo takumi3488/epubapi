@@ -76,7 +76,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: Dockerfile.img2epub
           target: img2epub
           push: true
           tags: ghcr.io/takumi3488/epubapi-img2epub:${{ github.sha }}
