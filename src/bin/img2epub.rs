@@ -107,7 +107,7 @@ async fn convert_to_epub(
 
     // .tar.gzを保存する
     let tar_path = format!("{}/{}", work_dir, name);
-    let mut file = File::create(&tar_path)?;
+    let mut file = File::create(&tar_path).expect("Failed to create file");
     while let Some(chunk) = body.next().await {
         file.write_all(&chunk?)?;
     }
@@ -115,7 +115,7 @@ async fn convert_to_epub(
     // .tar.gzを解凍する
     Command::new("tar")
         .arg("-xvf")
-        .arg(&tar_path)
+        .arg(&name)
         .current_dir(&work_dir)
         .spawn()?
         .wait()?;
