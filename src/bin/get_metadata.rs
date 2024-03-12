@@ -1,9 +1,8 @@
-
 use epub::doc::EpubDoc;
 use epubapi::{db::db::connect_db, minio::minio::get_client};
 use sqlx::query;
-use uuid::Uuid;
 use std::{env::var, fs::File, io::Write};
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
@@ -44,7 +43,10 @@ async fn main() {
         .send();
 
     while let Some(result) = response.next().await {
-        let objects = result.unwrap().contents.unwrap();
+        let objects = match result.unwrap().contents {
+            Some(objects) => objects,
+            None => continue,
+        };
 
         // 存在するユーザーIDで存在しないブックKEYのオブジェクトを処理する
         for object in objects
