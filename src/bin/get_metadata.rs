@@ -1,6 +1,7 @@
 use epub::doc::EpubDoc;
 use epubapi::{db::db::connect_db, minio::minio::get_client};
 use sqlx::query;
+use tokio::fs::create_dir;
 use std::{env::var, fs::File, io::Write};
 use uuid::Uuid;
 
@@ -67,6 +68,7 @@ async fn main() {
                 .unwrap();
 
             // /tmpに保存する
+            let _ = create_dir("/tmp").await;
             let tmp_path: String = format!("/tmp/{}", Uuid::new_v4());
             let mut file: File = File::create(&tmp_path).unwrap();
             while let Some(bytes) = output.body.try_next().await.unwrap() {
