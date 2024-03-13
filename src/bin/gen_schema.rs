@@ -2,5 +2,16 @@ use epubapi::routes::routes::ApiDoc;
 use utoipa::OpenApi;
 
 fn main() {
-    println!("{}", ApiDoc::openapi().to_pretty_json().unwrap())
+    let res = ApiDoc::openapi().to_pretty_json().unwrap();
+    println!("{}", res);
+    let out = res
+        .split("\n")
+        .enumerate()
+        .filter(|&(_, x)| x.contains("$ref"))
+        .map(|(i, x)| format!("{}: {}", i + 1, x))
+        .collect::<Vec<_>>()
+        .join("\n");
+    if out != "" {
+        panic!("{}", out);
+    }
 }

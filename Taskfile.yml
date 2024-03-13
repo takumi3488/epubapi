@@ -56,6 +56,12 @@ tasks:
     cmds:
       - cargo sqlx prepare --database-url ${DATABASE_URL}
 
+  check:
+    cmds:
+      - task: sqlx
+      - cargo check
+      - task: schema
+
   all:
     cmds:
       - task: rebuild

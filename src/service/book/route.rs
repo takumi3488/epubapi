@@ -28,8 +28,8 @@ use crate::{
     path = "/books",
     params(model::BookQuery),
     responses(
-        (status = 200, description = "OK", body = Vec<model::Book>),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+        (status = 200, description = "OK", body = inline(Vec<model::Book>)),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn get_books(
@@ -62,10 +62,10 @@ pub async fn get_books(
 #[utoipa::path(
     post,
     path = "/books",
-    request_body(content_type="multipart/form-data", content = model::Epub),
+    request_body(content_type="multipart/form-data", content = inline(model::Epub)),
     responses(
         (status = 204, description = "Save book file"),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::InvalidIdOrPassword(String::from("incorrect api key")))),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::InvalidIdOrPassword(String::from("incorrect api key")))),
     )
 )]
 pub async fn new_book(
@@ -150,10 +150,10 @@ pub async fn new_book(
 #[utoipa::path(
     post,
     path = "/books/{book_id}/tags",
-    request_body = model::AddTagRequest,
+    request_body = inline(model::AddTagRequest),
     responses(
         (status = 204, description = "OK"),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn add_tag_to_book(
@@ -185,7 +185,7 @@ pub async fn add_tag_to_book(
     path = "/books/{book_id}/tags/{tag_name}",
     responses(
         (status = 204, description = "OK"),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn delete_tag_from_book(
@@ -214,10 +214,10 @@ pub async fn delete_tag_from_book(
 #[utoipa::path(
     patch,
     path = "/books/{book_id}",
-    request_body = model::UpdateBookRequest,
+    request_body = inline(model::UpdateBookRequest),
     responses(
         (status = 204, description = "OK"),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn update_book(
@@ -249,7 +249,7 @@ pub async fn update_book(
     path = "/books/{book_id}",
     responses(
         (status = 204, description = "OK"),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn delete_book(
@@ -280,7 +280,7 @@ pub async fn delete_book(
     path = "/books/{book_id}",
     responses(
         (status = 200, description = "OK", body = Vec<u8>),
-        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn get_epub(

@@ -24,6 +24,7 @@ pub struct Book {
     pub publisher: String,
     pub date: String,
     pub cover_image: Vec<u8>,
+    #[schema(inline)]
     pub visibility: Visibility,
     #[schema(value_type = String, format = Date)]
     pub created_at: NaiveDateTime,
@@ -39,7 +40,7 @@ pub struct BookQuery {
 
 #[derive(ToSchema)]
 pub struct Epub {
-    #[schema(value_type = File, format = "binary")]
+    #[schema(value_type = String, format = Binary)]
     pub file: Multipart,
 }
 
@@ -55,6 +56,7 @@ pub struct DeleteTagRequest {
 
 #[derive(ToSchema, Serialize, Deserialize)]
 pub struct UpdateBookRequest {
+    #[schema(inline)]
     pub visibility: Visibility,
 }
 

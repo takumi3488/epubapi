@@ -12,10 +12,10 @@ use super::model::{self, user_id_from_header, UserError};
 #[utoipa::path(
     post,
     path = "/users",
-    request_body = NewUserRequest,
+    request_body = inline(model::NewUserRequest),
     responses(
         (status = 200, description = "OK"),
-        (status = 400, description = "Bad Request", body = UserError, example = json!(model::UserError::InvalidIdOrPassword(String::from("IDかパスワードが不正です")))),
+        (status = 400, description = "Bad Request", body = inline(UserError), example = json!(model::UserError::InvalidIdOrPassword(String::from("IDかパスワードが不正です")))),
     )
 )]
 pub async fn new_user(
@@ -55,7 +55,7 @@ pub async fn new_user(
     path = "/login",
     responses(
         (status = 204),
-        (status = 400, description = "Bad Request", body = UserError, example = json!(model::UserError::InvalidIdOrPassword(String::from("invalid id or password")))),
+        (status = 400, description = "Bad Request", body = inline(UserError), example = json!(model::UserError::InvalidIdOrPassword(String::from("invalid id or password")))),
     )
 )]
 pub async fn login(
@@ -93,8 +93,8 @@ pub async fn login(
     get,
     path = "/users",
     responses(
-        (status = 200, description = "OK", body = User),
-        (status = 400, description = "Bad Request", body = UserError, example = json!(model::UserError::Unauthorized(String::from("認証に失敗しました")))),
+        (status = 200, description = "OK", body = inline(model::User)),
+        (status = 400, description = "Bad Request", body = inline(UserError), example = json!(model::UserError::Unauthorized(String::from("認証に失敗しました")))),
     )
 )]
 pub async fn show_user(headers: HeaderMap, State(db): State<PgPool>) -> impl IntoResponse {

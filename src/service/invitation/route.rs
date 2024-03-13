@@ -5,8 +5,9 @@ use sqlx::PgPool;
 #[utoipa::path(
     post,
     path = "/check_invitation",
+    request_body = inline(model::CheckInvitationRequest),
     responses(
-        (status = 200, description = "OK", body = CheckInvitationResponse),
+        (status = 200, description = "OK", body = inline(model::CheckInvitationResponse)),
         (status = 404, description = "Not Found"),
     )
 )]

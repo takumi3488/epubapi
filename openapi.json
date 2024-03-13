@@ -74,7 +74,53 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/model.Book"
+                    "type": "object",
+                    "required": [
+                      "key",
+                      "owner_id",
+                      "name",
+                      "creator",
+                      "publisher",
+                      "date",
+                      "cover_image",
+                      "visibility",
+                      "created_at"
+                    ],
+                    "properties": {
+                      "cover_image": {
+                        "type": "string",
+                        "format": "binary"
+                      },
+                      "created_at": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "creator": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "owner_id": {
+                        "type": "string"
+                      },
+                      "publisher": {
+                        "type": "string"
+                      },
+                      "visibility": {
+                        "type": "string",
+                        "enum": [
+                          "public",
+                          "private"
+                        ]
+                      }
+                    }
                   }
                 }
               }
@@ -85,7 +131,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "missing user id"
@@ -106,7 +186,16 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/model.Epub"
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
               }
             }
           },
@@ -121,7 +210,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "invalid id or password": "incorrect api key"
@@ -167,7 +290,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "missing user id"
@@ -203,7 +360,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "missing user id"
@@ -234,7 +425,19 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/model.UpdateBookRequest"
+                "type": "object",
+                "required": [
+                  "visibility"
+                ],
+                "properties": {
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "public",
+                      "private"
+                    ]
+                  }
+                }
               }
             }
           },
@@ -249,7 +452,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "missing user id"
@@ -282,7 +519,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/model.AddTagRequest"
+                "type": "object",
+                "required": [
+                  "tag_name"
+                ],
+                "properties": {
+                  "tag_name": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -297,7 +542,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "missing user id"
@@ -343,7 +622,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "missing user id"
@@ -361,11 +674,19 @@
         ],
         "operationId": "check_invitation",
         "requestBody": {
-          "description": "",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/model.CheckInvitationRequest"
+                "type": "object",
+                "description": "`POST /check_invitation` のリクエストボディ",
+                "required": [
+                  "invitation_code"
+                ],
+                "properties": {
+                  "invitation_code": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -377,7 +698,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CheckInvitationResponse"
+                  "type": "object",
+                  "description": "`POST /check_invitation` のレスポンス",
+                  "required": [
+                    "state"
+                  ],
+                  "properties": {
+                    "state": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -402,7 +732,20 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/model.Tag"
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "book_count"
+                    ],
+                    "properties": {
+                      "book_count": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
                   }
                 }
               }
@@ -425,7 +768,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewTagRequest"
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -493,7 +844,15 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewTagRequest"
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -526,7 +885,38 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/User"
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "password",
+                    "role",
+                    "api_key",
+                    "invitations"
+                  ],
+                  "properties": {
+                    "api_key": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "invitations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "password": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "Admin",
+                        "User"
+                      ]
+                    }
+                  }
                 }
               }
             }
@@ -536,7 +926,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "unauthorized": "認証に失敗しました"
@@ -555,7 +979,23 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewUserRequest"
+                "type": "object",
+                "required": [
+                  "id",
+                  "password",
+                  "invitation_code"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "invitation_code": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },
@@ -570,7 +1010,41 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserError"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
                 },
                 "example": {
                   "invalid id or password": "IDかパスワードが不正です"
@@ -636,7 +1110,11 @@
             "type": "string"
           },
           "visibility": {
-            "$ref": "#/components/schemas/Visibility"
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
           }
         }
       },
@@ -712,7 +1190,8 @@
         ],
         "properties": {
           "file": {
-            "$ref": "#/components/schemas/File"
+            "type": "string",
+            "format": "binary"
           }
         }
       },
@@ -795,7 +1274,11 @@
         ],
         "properties": {
           "visibility": {
-            "$ref": "#/components/schemas/Visibility"
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
           }
         }
       },
@@ -825,7 +1308,11 @@
             "type": "string"
           },
           "role": {
-            "$ref": "#/components/schemas/UserRole"
+            "type": "string",
+            "enum": [
+              "Admin",
+              "User"
+            ]
           }
         }
       },

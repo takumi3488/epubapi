@@ -11,7 +11,7 @@ use sqlx::PgPool;
 #[utoipa::path(
     post,
     path = "/tags",
-    request_body = NewTagRequest,
+    request_body = inline(model::NewTagRequest),
     responses(
         (status = 204, description = "OK"),
         (status = 400, description = "Bad Request"),
@@ -35,7 +35,7 @@ pub async fn new_tag(
 #[utoipa::path(
     put,
     path = "/tags/{old}",
-    request_body = NewTagRequest,
+    request_body = inline(model::NewTagRequest),
     responses(
         (status = 204, description = "OK"),
         (status = 400, description = "Bad Request"),
@@ -94,7 +94,7 @@ pub async fn delete_tag(
     get,
     path = "/tags",
     responses(
-        (status = 200, body = Vec<model::Tag>, description = "OK"),
+        (status = 200, body = inline(Vec<model::Tag>), description = "OK"),
         (status = 400, description = "Bad Request"),
         (status = 401, description = "Unauthorized"),
     )

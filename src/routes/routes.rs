@@ -134,6 +134,24 @@ mod tests {
     }
 
     #[sqlx::test]
+    async fn test_openapi_json(pool: PgPool) {
+        let router = init_app(&pool);
+
+        // GET /api-docs/openapi.json
+        let response = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/api-docs/openapi.json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[sqlx::test]
     async fn test_swagger_ui(pool: PgPool) {
         let router = init_app(&pool);
 

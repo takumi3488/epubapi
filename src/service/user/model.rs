@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use crate::service::invitation::model::InvitationState;
 
-#[derive(Serialize, Debug, sqlx::Type)]
+#[derive(Serialize, Debug, sqlx::Type, ToSchema)]
 #[sqlx(type_name = "user_role", rename_all = "lowercase")]
 pub enum UserRole {
     Admin,
@@ -22,6 +22,7 @@ pub enum UserRole {
 pub struct User {
     pub id: String,
     pub password: String,
+    #[schema(inline)]
     pub role: UserRole,
     pub api_key: String,
     pub invitations: Vec<String>,
