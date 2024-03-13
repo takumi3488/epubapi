@@ -22,7 +22,8 @@ pub async fn insert_admin_user(db: &Pool<Postgres>) {
         UserRole::Admin as UserRole
     )
     .fetch_one(db)
-    .await {
+    .await
+    {
         Ok(row) => println!("Admin api key: {}", row.api_key),
         Err(e) => println!("Failed to create admin user: {}", e),
     }

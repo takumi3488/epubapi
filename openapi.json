@@ -68,7 +68,17 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/model.Book"
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized",
@@ -122,7 +132,51 @@
         }
       }
     },
-    "/books/{book_key}": {
+    "/books/{book_id}": {
+      "get": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "epubファイルを取得する",
+        "description": "epubファイルを取得する",
+        "operationId": "get_epub",
+        "parameters": [
+          {
+            "name": "book_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserError"
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "crate::service::book::route"
@@ -132,7 +186,7 @@
         "operationId": "delete_book",
         "parameters": [
           {
-            "name": "book_key",
+            "name": "book_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -168,7 +222,7 @@
         "operationId": "update_book",
         "parameters": [
           {
-            "name": "book_key",
+            "name": "book_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -206,7 +260,7 @@
         }
       }
     },
-    "/books/{book_key}/tags": {
+    "/books/{book_id}/tags": {
       "post": {
         "tags": [
           "crate::service::book::route"
@@ -216,7 +270,7 @@
         "operationId": "add_tag_to_book",
         "parameters": [
           {
-            "name": "book_key",
+            "name": "book_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -254,7 +308,7 @@
         }
       }
     },
-    "/books/{book_key}/tags/{tag_name}": {
+    "/books/{book_id}/tags/{tag_name}": {
       "delete": {
         "tags": [
           "crate::service::book::route"
@@ -264,7 +318,7 @@
         "operationId": "delete_tag_from_book",
         "parameters": [
           {
-            "name": "book_key",
+            "name": "book_id",
             "in": "path",
             "required": true,
             "schema": {

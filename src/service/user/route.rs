@@ -97,10 +97,7 @@ pub async fn login(
         (status = 400, description = "Bad Request", body = UserError, example = json!(model::UserError::Unauthorized(String::from("認証に失敗しました")))),
     )
 )]
-pub async fn show_user(
-    headers: HeaderMap,
-    State(db): State<PgPool>,
-) -> impl IntoResponse {
+pub async fn show_user(headers: HeaderMap, State(db): State<PgPool>) -> impl IntoResponse {
     let user_id = match user_id_from_header(&headers) {
         Some(id) => id,
         None => {
@@ -274,15 +271,15 @@ mod tests {
         // ユーザー情報取得 認証に失敗した場合
         let user_token = token_cookie_from_user_id("invalid_user_id");
         let req = Request::builder()
-        .uri("/users")
-        .method(Method::GET)
-        .header(header::COOKIE, &user_token)
-        .body(Body::empty())
-        .unwrap();
+            .uri("/users")
+            .method(Method::GET)
+            .header(header::COOKIE, &user_token)
+            .body(Body::empty())
+            .unwrap();
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 400);
-    
-    // ユーザー情報取得 成功した場合
+
+        // ユーザー情報取得 成功した場合
         let user_token = token_cookie_from_user_id("used_id");
         let req = Request::builder()
             .uri("/users")

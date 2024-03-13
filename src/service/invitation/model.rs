@@ -73,7 +73,8 @@ pub async fn check_invitation_state(
         InvitationState::Using => {
             // 招待コードの状態が使用中の場合
             if invitation_state_query_result.used_at.is_none()
-                || invitation_state_query_result.used_at.unwrap() + Duration::minutes(5) < Utc::now().naive_utc()
+                || invitation_state_query_result.used_at.unwrap() + Duration::minutes(5)
+                    < Utc::now().naive_utc()
             {
                 // 使用中の招待コードが5分以上経過している場合
                 // 招待コードの状態を unused に更新

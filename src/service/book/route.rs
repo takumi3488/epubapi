@@ -1,6 +1,6 @@
 use std::env;
 
-use super::model;
+use super::model::{self, is_available};
 use aws_sdk_s3::{
     operation::create_multipart_upload::CreateMultipartUploadOutput,
     primitives::ByteStream,
@@ -28,7 +28,7 @@ use crate::{
     path = "/books",
     params(model::BookQuery),
     responses(
-        (status = 200, description = "OK"),
+        (status = 200, description = "OK", body = Vec<model::Book>),
         (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
@@ -149,7 +149,7 @@ pub async fn new_book(
 /// bookにtagを追加する
 #[utoipa::path(
     post,
-    path = "/books/{book_key}/tags",
+    path = "/books/{book_id}/tags",
     request_body = model::AddTagRequest,
     responses(
         (status = 204, description = "OK"),
@@ -157,7 +157,7 @@ pub async fn new_book(
     )
 )]
 pub async fn add_tag_to_book(
-    Path(book_key): Path<String>,
+    Path(book_id): Path<String>,
     headers: HeaderMap,
     State(db): State<PgPool>,
     Json(req): Json<model::AddTagRequest>,
@@ -173,7 +173,7 @@ pub async fn add_tag_to_book(
         }
     };
 
-    match model::add_tag(&book_key, &req.tag_name, &user_id, &db).await {
+    match model::add_tag(&book_id, &req.tag_name, &user_id, &db).await {
         Ok(_) => (StatusCode::NO_CONTENT).into_response(),
         Err(_) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
@@ -182,14 +182,14 @@ pub async fn add_tag_to_book(
 /// bookからtagを削除する
 #[utoipa::path(
     delete,
-    path = "/books/{book_key}/tags/{tag_name}",
+    path = "/books/{book_id}/tags/{tag_name}",
     responses(
         (status = 204, description = "OK"),
         (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn delete_tag_from_book(
-    Path((book_key, tag_name)): Path<(String, String)>,
+    Path((book_id, tag_name)): Path<(String, String)>,
     headers: HeaderMap,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
@@ -204,7 +204,7 @@ pub async fn delete_tag_from_book(
         }
     };
 
-    match model::delete_tag_from_book(&book_key, &tag_name, &user_id, &db).await {
+    match model::delete_tag_from_book(&book_id, &tag_name, &user_id, &db).await {
         Ok(_) => (StatusCode::NO_CONTENT).into_response(),
         Err(_) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
@@ -213,7 +213,7 @@ pub async fn delete_tag_from_book(
 /// bookを更新する
 #[utoipa::path(
     patch,
-    path = "/books/{book_key}",
+    path = "/books/{book_id}",
     request_body = model::UpdateBookRequest,
     responses(
         (status = 204, description = "OK"),
@@ -221,7 +221,7 @@ pub async fn delete_tag_from_book(
     )
 )]
 pub async fn update_book(
-    Path(book_key): Path<String>,
+    Path(book_id): Path<String>,
     headers: HeaderMap,
     State(db): State<PgPool>,
     Json(req): Json<model::UpdateBookRequest>,
@@ -237,7 +237,7 @@ pub async fn update_book(
         }
     };
 
-    match model::update_book(&book_key, &user_id, req, &db).await {
+    match model::update_book(&book_id, &user_id, req, &db).await {
         Ok(_) => (StatusCode::NO_CONTENT).into_response(),
         Err(_) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
@@ -246,14 +246,14 @@ pub async fn update_book(
 /// bookを削除する
 #[utoipa::path(
     delete,
-    path = "/books/{book_key}",
+    path = "/books/{book_id}",
     responses(
         (status = 204, description = "OK"),
         (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
 pub async fn delete_book(
-    Path(book_key): Path<String>,
+    Path(book_id): Path<String>,
     headers: HeaderMap,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
@@ -268,10 +268,66 @@ pub async fn delete_book(
         }
     };
 
-    match model::delete_book(&book_key, &user_id, &db).await {
+    match model::delete_book(&book_id, &user_id, &db).await {
         Ok(_) => (StatusCode::NO_CONTENT).into_response(),
         Err(_) => (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
     }
+}
+
+/// epubファイルを取得する
+#[utoipa::path(
+    get,
+    path = "/books/{book_id}",
+    responses(
+        (status = 200, description = "OK", body = Vec<u8>),
+        (status = 401, description = "Unauthorized", body = UserError, example = json!(UserError::Unauthorized(String::from("missing user id")))),
+    )
+)]
+pub async fn get_epub(
+    Path(book_id): Path<String>,
+    headers: HeaderMap,
+    State(db): State<PgPool>,
+) -> impl IntoResponse {
+    let user_id = match user_id_from_header(&headers) {
+        Some(id) => id,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(UserError::Unauthorized(String::from("missing user id"))),
+            )
+                .into_response()
+        }
+    };
+    let book = match model::get_book(&book_id, &db).await {
+        Ok(book) => book,
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
+    };
+    if !is_available(&book, &user_id, &db).await {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(UserError::Unauthorized(String::from("unauthorized"))),
+        )
+            .into_response();
+    }
+
+    let minio_client = minio::get_client().await;
+    let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
+    let object = minio_client
+        .get_object()
+        .bucket(&epub_bucket)
+        .key(&book.key)
+        .send()
+        .await
+        .expect("failed to get object");
+    let epub = object
+        .body
+        .collect()
+        .await
+        .expect("failed to collect body")
+        .into_bytes()
+        .to_vec();
+
+    (StatusCode::OK, epub).into_response()
 }
 
 #[cfg(test)]
@@ -307,10 +363,10 @@ mod tests {
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let text = from_utf8(&*&bytes).unwrap();
-        assert!(text.contains(r#""key":"user_public_book_id""#));
-        assert!(text.contains(r#""key":"user_private_book_id""#));
-        assert!(text.contains(r#""key":"admin_public_book_id""#));
-        assert!(!text.contains(r#""key":"admin_private_book_id""#));
+        assert!(text.contains(r#""key":"user_public_book_key""#));
+        assert!(text.contains(r#""key":"user_private_book_key""#));
+        assert!(text.contains(r#""key":"admin_public_book_key""#));
+        assert!(!text.contains(r#""key":"admin_private_book_key""#));
 
         // GET /books (with query)
         let req = Request::builder()
@@ -322,10 +378,10 @@ mod tests {
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let text = from_utf8(&*&bytes).unwrap();
-        assert!(text.contains(r#""key":"user_public_book_id""#));
-        assert!(text.contains(r#""key":"user_private_book_id""#));
-        assert!(!text.contains(r#""key":"admin_public_book_id""#));
-        assert!(!text.contains(r#""key":"admin_private_book_id""#));
+        assert!(text.contains(r#""key":"user_public_book_key""#));
+        assert!(text.contains(r#""key":"user_private_book_key""#));
+        assert!(!text.contains(r#""key":"admin_public_book_key""#));
+        assert!(!text.contains(r#""key":"admin_private_book_key""#));
 
         let req = Request::builder()
             .uri(r#"/books?page=2&keyword=user&tag=test_tag"#)
@@ -536,5 +592,23 @@ mod tests {
             .unwrap();
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 204);
+    }
+
+    /// epubファイル取得のテスト
+    #[sqlx::test(fixtures("users", "tags", "book_with_tags"))]
+    async fn test_get_epub(pool: PgPool) {
+        let router = init_app(&pool);
+        let user_cookie = token_cookie_from_user_id("test_user_id");
+
+        // GET /books/{book_id}
+        let req = Request::builder()
+            .uri("/books/test_book_id")
+            .header(header::COOKIE, &user_cookie)
+            .body(Body::empty())
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 200);
+        let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
+        assert_eq!(&bytes[..2], b"PK");
     }
 }

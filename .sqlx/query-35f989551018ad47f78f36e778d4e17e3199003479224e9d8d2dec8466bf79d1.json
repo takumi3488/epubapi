@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                key,\n                owner_id,\n                name,\n                creator,\n                publisher,\n                date,\n                cover_image,\n                visibility as \"visibility: _\",\n                created_at\n            FROM books\n            WHERE\n                (\n                    owner_id = $1\n                    OR visibility = 'public'\n                ) AND (\n                    name ILIKE $2\n                    OR creator ILIKE $2\n                ) AND (\n                    $3 = ''\n                    OR EXISTS (\n                        SELECT 1\n                        FROM book_tags\n                        WHERE book_tags.book_key = books.key\n                        AND book_tags.tag_name = $3\n                    )\n                )\n            ORDER BY created_at DESC\n            LIMIT 100 OFFSET $4\n        ",
+  "query": "\n            SELECT\n                key,\n                owner_id,\n                name,\n                creator,\n                publisher,\n                date,\n                cover_image,\n                visibility as \"visibility: _\",\n                created_at\n            FROM books\n            WHERE id = $1\n        ",
   "describe": {
     "columns": [
       {
@@ -61,10 +61,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text",
-        "Text",
-        "Text",
-        "Int8"
+        "Text"
       ]
     },
     "nullable": [
@@ -79,5 +76,5 @@
       false
     ]
   },
-  "hash": "d7d6217edfce1457244b2b70f2e29406511f349973696681c95ca164314b0a24"
+  "hash": "35f989551018ad47f78f36e778d4e17e3199003479224e9d8d2dec8466bf79d1"
 }

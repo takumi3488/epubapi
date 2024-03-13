@@ -12,4 +12,10 @@ values
         'admin_password',
         'admin',
         'admin_api_key'
+    ),
+    (
+        'test_user_id',
+        'test_password',
+        'user',
+        'test_api_key'
     );

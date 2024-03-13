@@ -1,8 +1,8 @@
 use epub::doc::EpubDoc;
 use epubapi::{db::db::connect_db, minio::minio::get_client};
 use sqlx::query;
-use tokio::fs::create_dir;
 use std::{env::var, fs::File, io::Write};
+use tokio::fs::create_dir;
 use uuid::Uuid;
 
 #[tokio::main]
@@ -23,7 +23,7 @@ async fn main() {
         .map(|row| row.id.as_str().to_string())
         .collect();
 
-    // ブックKEYを取得する
+    // bookのkeyを取得する
     let book_keys: Vec<String> = query!("SELECT key FROM books")
         .fetch_all(&db_client)
         .await

@@ -16,9 +16,7 @@ pub async fn check_invitation(
 ) -> impl IntoResponse {
     match model::check_invitation_state(&db, &body.invitation_code).await {
         Ok(response) => (StatusCode::OK, Json(response)).into_response(),
-        Err(_) => {
-            (StatusCode::NOT_FOUND).into_response()
-        },
+        Err(_) => (StatusCode::NOT_FOUND).into_response(),
     }
 }
 
@@ -29,7 +27,10 @@ mod tests {
     use crate::routes::routes::init_app;
 
     use super::*;
-    use axum::{body::{to_bytes, Body}, http::{header, Method, Request}};
+    use axum::{
+        body::{to_bytes, Body},
+        http::{header, Method, Request},
+    };
     use serde_json::{json, to_string};
     use sqlx;
     use tower::ServiceExt;
@@ -48,7 +49,8 @@ mod tests {
                     {
                         "invitation_code": "not_found"
                     }
-                )).unwrap()
+                ))
+                .unwrap(),
             ))
             .unwrap();
         let res = router.clone().oneshot(req).await.unwrap();

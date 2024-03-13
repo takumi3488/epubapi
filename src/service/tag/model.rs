@@ -85,10 +85,10 @@ pub async fn get_tags(db: &PgPool, user_id: &str) -> Result<Vec<Tag>, sqlx::Erro
         sqlx::query!(
             r#"
                 SELECT t.name AS name,
-                COUNT(DISTINCT bt.book_key) AS book_count
+                COUNT(DISTINCT bt.book_id) AS book_count
                 FROM tags t
                 LEFT JOIN book_tags bt ON bt.tag_name = t.name
-                LEFT JOIN books b ON b.key = bt.book_key
+                LEFT JOIN books b ON b.id = bt.book_id
                 WHERE b.owner_id = $1 OR b.visibility = 'public'
                 GROUP BY t.name;
             "#,

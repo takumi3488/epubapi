@@ -1,6 +1,6 @@
 use axum::{
     extract::DefaultBodyLimit,
-    routing::{delete, get, patch, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 use utoipa::OpenApi;
@@ -8,11 +8,12 @@ use utoipa_swagger_ui::SwaggerUi;
 
 use crate::service::{
     book::route::{
-        add_tag_to_book, delete_book, delete_tag_from_book, get_books, new_book, update_book,
+        add_tag_to_book, delete_book, delete_tag_from_book, get_books, get_epub, new_book,
+        update_book,
     },
     invitation::route::check_invitation,
     tag::route::{delete_tag, get_tags, new_tag, update_tag},
-    user::route::{show_user, login, new_user},
+    user::route::{login, new_user, show_user},
 };
 
 #[derive(OpenApi)]
@@ -32,7 +33,8 @@ use crate::service::{
         crate::service::book::route::update_book,
         crate::service::book::route::delete_book,
         crate::service::book::route::add_tag_to_book,
-        crate::service::book::route::delete_tag_from_book
+        crate::service::book::route::delete_tag_from_book,
+        crate::service::book::route::get_epub,
     ),
     components(
         schemas(
@@ -77,10 +79,13 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
                 .post(new_book)
                 .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 20)),
         )
-        .route("/books/:book_key", patch(update_book).delete(delete_book))
-        .route("/books/:book_key/tags", post(add_tag_to_book))
         .route(
-            "/books/:book_key/tags/:tag_name",
+            "/books/:book_id",
+            get(get_epub).patch(update_book).delete(delete_book),
+        )
+        .route("/books/:book_id/tags", post(add_tag_to_book))
+        .route(
+            "/books/:book_id/tags/:tag_name",
             delete(delete_tag_from_book),
         )
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
