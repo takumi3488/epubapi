@@ -19,7 +19,6 @@ use crate::service::{
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        self::health,
         crate::service::book::route::new_book,
         crate::service::invitation::route::check_invitation,
         crate::service::user::route::new_user,
@@ -93,13 +92,6 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
 }
 
 /// ヘルスチェック
-#[utoipa::path(
-    get,
-    path = "/",
-    responses(
-        (status = StatusCode::OK, description = "OK")
-    )
-)]
 pub async fn health() -> &'static str {
     "OK"
 }

@@ -9,21 +9,6 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/": {
-      "get": {
-        "tags": [
-          "self"
-        ],
-        "summary": "ヘルスチェック",
-        "description": "ヘルスチェック",
-        "operationId": "health",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/books": {
       "get": {
         "tags": [
@@ -1002,7 +987,7 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "204": {
             "description": "OK"
           },
           "400": {
