@@ -1,7 +1,10 @@
 use std::env;
 
 use axum::{
-    extract::DefaultBodyLimit, http::Method, routing::{delete, get, post, put}, Router
+    extract::DefaultBodyLimit,
+    http::{header, Method},
+    routing::{delete, get, post, put},
+    Router,
 };
 use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
@@ -88,6 +91,12 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
         .with_state(db.clone())
         .layer(
             CorsLayer::new()
+                .allow_headers(vec![
+                    header::AUTHORIZATION,
+                    header::ACCEPT,
+                    header::CONTENT_TYPE,
+                    header::COOKIE,
+                ])
                 .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
                 .allow_origin(
                     env::var("ALLOW_ORIGINS")
