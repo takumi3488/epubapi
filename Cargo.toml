@@ -26,7 +26,7 @@ sqlx = { version = "0.7.3", features = [
 ] }
 tokio = { version = "1.36.0", features = ["full"] }
 tower = "0.4.13"
-tower-http = { version = "0.5.1", features = ["fs"] }
+tower-http = { version = "0.5.1", features = ["fs", "cors"] }
 utoipa = { version = "4.2.0", features = ["axum_extras"] }
 utoipa-rapidoc = { version = "3.0.0", features = ["axum"] }
 utoipa-redoc = { version = "3.0.0", features = ["axum"] }
