@@ -19,7 +19,6 @@ use crate::service::{
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        crate::service::book::route::new_book,
         crate::service::invitation::route::check_invitation,
         crate::service::user::route::new_user,
         crate::service::user::route::show_user,
@@ -28,12 +27,10 @@ use crate::service::{
         crate::service::tag::route::update_tag,
         crate::service::tag::route::delete_tag,
         crate::service::book::route::get_books,
-        crate::service::book::route::new_book,
         crate::service::book::route::update_book,
         crate::service::book::route::delete_book,
         crate::service::book::route::add_tag_to_book,
         crate::service::book::route::delete_tag_from_book,
-        crate::service::book::route::get_epub,
     ),
     components(
         schemas(
@@ -48,7 +45,6 @@ use crate::service::{
             crate::service::tag::model::NewTagRequest,
             crate::service::book::model::Book,
             crate::service::book::model::BookQuery,
-            crate::service::book::model::Epub,
             crate::service::book::model::Visibility,
             crate::service::book::model::UpdateBookRequest,
             crate::service::book::model::AddTagRequest,

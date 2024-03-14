@@ -38,9 +38,7 @@ pub struct BookQuery {
     pub tag: Option<String>,
 }
 
-#[derive(ToSchema)]
 pub struct Epub {
-    #[schema(value_type = String, format = Binary)]
     pub file: Multipart,
 }
 
