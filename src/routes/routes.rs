@@ -2,6 +2,7 @@ use std::env;
 
 use axum::{
     extract::DefaultBodyLimit,
+    http::{header, Method},
     routing::{delete, get, post, put},
     Router,
 };
@@ -89,13 +90,21 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(db.clone())
         .layer(
-            CorsLayer::new().allow_origin(
-                env::var("ALLOW_ORIGINS")
-                    .unwrap_or("http://localhost:3000".to_string())
-                    .split(',')
-                    .map(|s| s.parse().unwrap())
-                    .collect::<Vec<_>>(),
-            ),
+            CorsLayer::new()
+                .allow_headers(vec![
+                    header::AUTHORIZATION,
+                    header::ACCEPT,
+                    header::CONTENT_TYPE,
+                    header::COOKIE,
+                ])
+                .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
+                .allow_origin(
+                    env::var("ALLOW_ORIGINS")
+                        .unwrap_or("http://localhost:3000".to_string())
+                        .split(',')
+                        .map(|s| s.parse().unwrap())
+                        .collect::<Vec<_>>(),
+                ),
         )
 }
 
