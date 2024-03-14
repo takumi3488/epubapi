@@ -14,7 +14,7 @@ use super::model::{self, user_id_from_header, UserError};
     path = "/users",
     request_body = inline(model::NewUserRequest),
     responses(
-        (status = 200, description = "OK"),
+        (status = 204, description = "OK"),
         (status = 400, description = "Bad Request", body = inline(UserError), example = json!(model::UserError::InvalidIdOrPassword(String::from("IDかパスワードが不正です")))),
     )
 )]

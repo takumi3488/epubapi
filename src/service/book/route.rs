@@ -59,15 +59,6 @@ pub async fn get_books(
 /// bookを新規作成する
 ///
 /// cookieではなく、ヘッダーにX-Api-Keyを設定する必要がある
-#[utoipa::path(
-    post,
-    path = "/books",
-    request_body(content_type="multipart/form-data", content = inline(model::Epub)),
-    responses(
-        (status = 204, description = "Save book file"),
-        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::InvalidIdOrPassword(String::from("incorrect api key")))),
-    )
-)]
 pub async fn new_book(
     headers: HeaderMap,
     State(db): State<PgPool>,
@@ -275,14 +266,6 @@ pub async fn delete_book(
 }
 
 /// epubファイルを取得する
-#[utoipa::path(
-    get,
-    path = "/books/{book_id}",
-    responses(
-        (status = 200, description = "OK", body = Vec<u8>),
-        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
-    )
-)]
 pub async fn get_epub(
     Path(book_id): Path<String>,
     headers: HeaderMap,

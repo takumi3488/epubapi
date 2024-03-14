@@ -9,21 +9,6 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/": {
-      "get": {
-        "tags": [
-          "self"
-        ],
-        "summary": "ヘルスチェック",
-        "description": "ヘルスチェック",
-        "operationId": "health",
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/books": {
       "get": {
         "tags": [
@@ -174,166 +159,9 @@
             }
           }
         }
-      },
-      "post": {
-        "tags": [
-          "crate::service::book::route"
-        ],
-        "summary": "bookを新規作成する",
-        "description": "bookを新規作成する\n\ncookieではなく、ヘッダーにX-Api-Keyを設定する必要がある",
-        "operationId": "new_book",
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "file"
-                ],
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "204": {
-            "description": "Save book file"
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "required": [
-                        "unauthorized"
-                      ],
-                      "properties": {
-                        "unauthorized": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "invalid id or password"
-                      ],
-                      "properties": {
-                        "invalid id or password": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "invalid invitation code"
-                      ],
-                      "properties": {
-                        "invalid invitation code": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  ]
-                },
-                "example": {
-                  "invalid id or password": "incorrect api key"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/books/{book_id}": {
-      "get": {
-        "tags": [
-          "crate::service::book::route"
-        ],
-        "summary": "epubファイルを取得する",
-        "description": "epubファイルを取得する",
-        "operationId": "get_epub",
-        "parameters": [
-          {
-            "name": "book_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "type": "object",
-                      "required": [
-                        "unauthorized"
-                      ],
-                      "properties": {
-                        "unauthorized": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "invalid id or password"
-                      ],
-                      "properties": {
-                        "invalid id or password": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "invalid invitation code"
-                      ],
-                      "properties": {
-                        "invalid invitation code": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  ]
-                },
-                "example": {
-                  "unauthorized": "missing user id"
-                }
-              }
-            }
-          }
-        }
-      },
       "delete": {
         "tags": [
           "crate::service::book::route"
@@ -1002,7 +830,7 @@
           "required": true
         },
         "responses": {
-          "200": {
+          "204": {
             "description": "OK"
           },
           "400": {
@@ -1180,18 +1008,6 @@
         "properties": {
           "tag_name": {
             "type": "string"
-          }
-        }
-      },
-      "Epub": {
-        "type": "object",
-        "required": [
-          "file"
-        ],
-        "properties": {
-          "file": {
-            "type": "string",
-            "format": "binary"
           }
         }
       },
