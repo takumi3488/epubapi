@@ -1,3 +1,5 @@
+use std::env;
+
 use axum::{
     body::Body,
     extract::State,
@@ -39,8 +41,9 @@ pub async fn new_user(
         AppendHeaders([(
             SET_COOKIE,
             format!(
-                "token={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=Lax;",
+                "token={};Domain={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=Lax;",
                 jwt,
+                env::var("DOMAIN").unwrap_or("localhost".to_string()),
                 3600 * 24 * 30
             ),
         )]),
@@ -78,8 +81,9 @@ pub async fn login(
         AppendHeaders([(
             SET_COOKIE,
             format!(
-                "token={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=Lax;",
+                "token={};Domain={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=Lax;",
                 jwt,
+                env::var("DOMAIN").unwrap_or("localhost".to_string()),
                 3600 * 24 * 30
             ),
         )]),
