@@ -91,6 +91,7 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
         .with_state(db.clone())
         .layer(
             CorsLayer::new()
+                .allow_credentials(true)
                 .allow_headers(vec![
                     header::AUTHORIZATION,
                     header::ACCEPT,
