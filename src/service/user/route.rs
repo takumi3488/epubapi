@@ -56,6 +56,7 @@ pub async fn new_user(
 #[utoipa::path(
     post,
     path = "/login",
+    request_body = inline(model::LoginRequest),
     responses(
         (status = 204),
         (status = 400, description = "Bad Request", body = inline(UserError), example = json!(model::UserError::InvalidIdOrPassword(String::from("invalid id or password")))),

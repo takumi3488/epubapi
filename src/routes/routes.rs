@@ -24,6 +24,7 @@ use crate::service::{
 #[openapi(
     paths(
         crate::service::invitation::route::check_invitation,
+        crate::service::user::route::login,
         crate::service::user::route::new_user,
         crate::service::user::route::show_user,
         crate::service::tag::route::get_tags,
@@ -42,6 +43,7 @@ use crate::service::{
             crate::service::invitation::model::CheckInvitationResponse,
             crate::service::user::model::UserError,
             crate::service::user::model::User,
+            crate::service::user::model::LoginRequest,
             crate::service::user::model::ShowUserRequest,
             crate::service::user::model::NewUserRequest,
             crate::service::user::model::LoginRequest,
