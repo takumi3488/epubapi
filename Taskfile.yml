@@ -15,10 +15,7 @@ env:
 tasks:
   default:
     cmds:
-      - task: rebuild
-      - cargo run --bin img2epub
-      - cargo run --bin get_metadata
-      - task: test
+      - task: all
 
   serve:
     cmds:
