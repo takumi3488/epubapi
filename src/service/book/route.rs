@@ -28,7 +28,7 @@ use crate::{
     path = "/books",
     params(model::BookQuery),
     responses(
-        (status = 200, description = "OK", body = inline(Vec<model::Book>)),
+        (status = 200, description = "OK", body = inline(Vec<model::BookResponse>)),
         (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]

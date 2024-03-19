@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, str::from_utf8};
 
 use axum::extract::Multipart;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ pub enum Visibility {
     Private,
 }
 
-#[derive(sqlx::FromRow, Debug, ToSchema, Serialize)]
+#[derive(sqlx::FromRow, Serialize)]
 pub struct Book {
     pub key: String,
     pub owner_id: String,
@@ -24,6 +24,19 @@ pub struct Book {
     pub publisher: String,
     pub date: String,
     pub cover_image: Vec<u8>,
+    pub visibility: Visibility,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct BookResponse {
+    pub key: String,
+    pub owner_id: String,
+    pub name: String,
+    pub creator: String,
+    pub publisher: String,
+    pub date: String,
+    pub cover_image: String,
     #[schema(inline)]
     pub visibility: Visibility,
     #[schema(value_type = String, format = Date)]
@@ -90,7 +103,7 @@ pub async fn get_books(
     user_id: &str,
     query: BookQuery,
     db: &PgPool,
-) -> Result<Vec<Book>, sqlx::Error> {
+) -> Result<Vec<BookResponse>, sqlx::Error> {
     sqlx::query_as!(
         Book,
         r#"
@@ -134,6 +147,22 @@ pub async fn get_books(
     )
     .fetch_all(db)
     .await
+    .map(|books| {
+        books
+            .into_iter()
+            .map(|book| BookResponse {
+                key: book.key,
+                owner_id: book.owner_id,
+                name: book.name,
+                creator: book.creator,
+                publisher: book.publisher,
+                date: book.date,
+                cover_image: from_utf8(&book.cover_image).unwrap().to_string(),
+                visibility: book.visibility,
+                created_at: book.created_at,
+            })
+            .collect()
+    })
 }
 
 pub async fn add_tag(

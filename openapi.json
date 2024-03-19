@@ -73,8 +73,7 @@
                     ],
                     "properties": {
                       "cover_image": {
-                        "type": "string",
-                        "format": "binary"
+                        "type": "string"
                       },
                       "created_at": {
                         "type": "string",
@@ -979,7 +978,26 @@
           }
         }
       },
-      "Book": {
+      "BookQuery": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "minimum": 0
+          },
+          "tag": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BookResponse": {
         "type": "object",
         "required": [
           "key",
@@ -994,8 +1012,7 @@
         ],
         "properties": {
           "cover_image": {
-            "type": "string",
-            "format": "binary"
+            "type": "string"
           },
           "created_at": {
             "type": "string",
@@ -1025,25 +1042,6 @@
               "public",
               "private"
             ]
-          }
-        }
-      },
-      "BookQuery": {
-        "type": "object",
-        "properties": {
-          "keyword": {
-            "type": "string",
-            "nullable": true
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "minimum": 0
-          },
-          "tag": {
-            "type": "string",
-            "nullable": true
           }
         }
       },

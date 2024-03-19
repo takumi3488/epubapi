@@ -3,7 +3,7 @@ use std::env;
 use axum::{
     extract::DefaultBodyLimit,
     http::{header, Method},
-    routing::{delete, get, patch, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 use tower_http::cors::CorsLayer;
@@ -49,7 +49,7 @@ use crate::service::{
             crate::service::user::model::LoginRequest,
             crate::service::tag::model::Tag,
             crate::service::tag::model::NewTagRequest,
-            crate::service::book::model::Book,
+            crate::service::book::model::BookResponse,
             crate::service::book::model::BookQuery,
             crate::service::book::model::Visibility,
             crate::service::book::model::UpdateBookRequest,
@@ -80,7 +80,7 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
                 .post(new_book)
                 .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 20)),
         )
-        .route("/books/:book_id", patch(update_book).delete(delete_book))
+        .route("/books/:book_id", get(get_epub).patch(update_book).delete(delete_book))
         .route("/books/:book_id/tags", post(add_tag_to_book))
         .route(
             "/books/:book_id/tags/:tag_name",
