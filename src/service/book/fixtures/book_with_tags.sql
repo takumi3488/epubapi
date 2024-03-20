@@ -56,7 +56,7 @@ values
         'private'
     ),(
         'test_book_id',
-        'minio_user_id/test.epub',
+        'minio_user_id/test1.epub',
         'test_user_id',
         'test_epub',
         'book_creator',

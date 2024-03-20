@@ -151,10 +151,10 @@ mod tests {
     /// convert_to_epubのテスト
     async fn test_convert_to_epub() {
         let uuid = Uuid::new_v4();
-        let body = ByteStream::from_path(Path::new("./test_assets/test.tar.gz"))
+        let body = ByteStream::from_path(Path::new("./test_assets/images/test1.tar.gz"))
             .await
             .unwrap();
-        let mut body: ByteStream = convert_to_epub(uuid, body, "test.tar.gz", "test.epub")
+        let mut body: ByteStream = convert_to_epub(uuid, body, "test1.tar.gz", "test.epub")
             .await
             .unwrap();
 

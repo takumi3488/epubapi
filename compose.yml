@@ -93,7 +93,7 @@ services:
     image: quay.io/minio/mc:latest
     volumes:
       - ./test_assets/create_bucket.sh:/create_bucket.sh
-      - ./test_assets/test.tar.gz:/test.tar.gz
+      - ./test_assets/images:/images
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: minio123
