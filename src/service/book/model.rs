@@ -1,6 +1,7 @@
-use std::{env, str::from_utf8};
+use std::env;
 
 use axum::extract::Multipart;
+use base64::{prelude::BASE64_STANDARD, Engine};
 use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, PgPool};
 use utoipa::{IntoParams, ToSchema};
@@ -157,7 +158,7 @@ pub async fn get_books(
                 creator: book.creator,
                 publisher: book.publisher,
                 date: book.date,
-                cover_image: from_utf8(&book.cover_image).unwrap().to_string(),
+                cover_image: BASE64_STANDARD.encode(&book.cover_image),
                 visibility: book.visibility,
                 created_at: book.created_at,
             })

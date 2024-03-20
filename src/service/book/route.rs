@@ -351,6 +351,19 @@ mod tests {
         assert!(text.contains(r#""key":"admin_public_book_key""#));
         assert!(!text.contains(r#""key":"admin_private_book_key""#));
 
+        // GET /books (no query and real cover image)
+        let minio_cookie = token_cookie_from_user_id("minio_user_id");
+        let req = Request::builder()
+            .uri("/books")
+            .header(header::COOKIE, &minio_cookie)
+            .body(Body::empty())
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 200);
+        let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
+        let text = from_utf8(&*&bytes).unwrap();
+        assert!(text.contains(r#""owner_id":"minio_user_id""#));
+
         // GET /books (with query)
         let req = Request::builder()
             .uri(r#"/books?page=1&keyword=user&tag=test_tag"#)
