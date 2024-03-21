@@ -136,7 +136,7 @@ pub async fn get_books(
                     )
                 )
             ORDER BY created_at DESC
-            LIMIT 100 OFFSET $4
+            LIMIT 12 OFFSET $4
         "#,
         user_id,
         query
@@ -144,7 +144,7 @@ pub async fn get_books(
             .map(|k| format!("%{}%", k))
             .unwrap_or("%%".to_string()),
         query.tag.unwrap_or("".to_string()),
-        ((query.page.unwrap_or(1) - 1) * 100) as i32,
+        ((query.page.unwrap_or(1) - 1) * 12) as i32,
     )
     .fetch_all(db)
     .await

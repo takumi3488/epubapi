@@ -2,7 +2,7 @@ using Plots
 using Metal
 gr(fmt=:png)
 
-N = 200
+N = 61
 
 function rmall(; ball=false)
     for i in 1:N
@@ -44,7 +44,7 @@ for i in 1:N
     plt(i)
 
     # コピー
-    for j in 2:10
+    for j in 2:2
         cp("test1.png", "test$j.png")
     end
 

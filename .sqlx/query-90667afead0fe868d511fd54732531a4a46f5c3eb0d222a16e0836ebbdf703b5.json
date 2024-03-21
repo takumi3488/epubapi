@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                key,\n                owner_id,\n                name,\n                creator,\n                publisher,\n                date,\n                cover_image,\n                visibility as \"visibility: _\",\n                created_at\n            FROM books\n            WHERE\n                (\n                    owner_id = $1\n                    OR visibility = 'public'\n                ) AND (\n                    name ILIKE $2\n                    OR creator ILIKE $2\n                ) AND (\n                    $3 = ''\n                    OR EXISTS (\n                        SELECT 1\n                        FROM book_tags\n                        WHERE book_tags.book_id = books.id\n                        AND book_tags.tag_name = $3\n                    )\n                )\n            ORDER BY created_at DESC\n            LIMIT 100 OFFSET $4\n        ",
+  "query": "\n            SELECT\n                key,\n                owner_id,\n                name,\n                creator,\n                publisher,\n                date,\n                cover_image,\n                visibility as \"visibility: _\",\n                created_at\n            FROM books\n            WHERE\n                (\n                    owner_id = $1\n                    OR visibility = 'public'\n                ) AND (\n                    name ILIKE $2\n                    OR creator ILIKE $2\n                ) AND (\n                    $3 = ''\n                    OR EXISTS (\n                        SELECT 1\n                        FROM book_tags\n                        WHERE book_tags.book_id = books.id\n                        AND book_tags.tag_name = $3\n                    )\n                )\n            ORDER BY created_at DESC\n            LIMIT 12 OFFSET $4\n        ",
   "describe": {
     "columns": [
       {
@@ -79,5 +79,5 @@
       false
     ]
   },
-  "hash": "63ce1afc379f975fd1a55c8531bd5147eb03204dd7c17d83e65ddce34171b73a"
+  "hash": "90667afead0fe868d511fd54732531a4a46f5c3eb0d222a16e0836ebbdf703b5"
 }
