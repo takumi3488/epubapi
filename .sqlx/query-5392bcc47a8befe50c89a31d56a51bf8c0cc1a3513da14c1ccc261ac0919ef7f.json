@@ -1,45 +1,50 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT\n                key,\n                owner_id,\n                name,\n                creator,\n                publisher,\n                date,\n                cover_image,\n                visibility as \"visibility: _\",\n                created_at\n            FROM books\n            WHERE id = $1\n        ",
+  "query": "\n            SELECT\n                id,\n                key,\n                owner_id,\n                name,\n                creator,\n                publisher,\n                date,\n                cover_image,\n                visibility as \"visibility: _\",\n                created_at\n            FROM books\n            WHERE id = $1\n        ",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "key",
+        "name": "id",
         "type_info": "Text"
       },
       {
         "ordinal": 1,
-        "name": "owner_id",
+        "name": "key",
         "type_info": "Text"
       },
       {
         "ordinal": 2,
-        "name": "name",
+        "name": "owner_id",
         "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "creator",
+        "name": "name",
         "type_info": "Text"
       },
       {
         "ordinal": 4,
-        "name": "publisher",
+        "name": "creator",
         "type_info": "Text"
       },
       {
         "ordinal": 5,
-        "name": "date",
+        "name": "publisher",
         "type_info": "Text"
       },
       {
         "ordinal": 6,
+        "name": "date",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
         "name": "cover_image",
         "type_info": "Bytea"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "visibility: _",
         "type_info": {
           "Custom": {
@@ -54,7 +59,7 @@
         }
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamp"
       }
@@ -73,8 +78,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "35f989551018ad47f78f36e778d4e17e3199003479224e9d8d2dec8466bf79d1"
+  "hash": "5392bcc47a8befe50c89a31d56a51bf8c0cc1a3513da14c1ccc261ac0919ef7f"
 }

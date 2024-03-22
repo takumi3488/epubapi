@@ -18,6 +18,7 @@ pub enum Visibility {
 
 #[derive(sqlx::FromRow, Serialize)]
 pub struct Book {
+    pub id: String,
     pub key: String,
     pub owner_id: String,
     pub name: String,
@@ -82,6 +83,7 @@ pub async fn get_book(book_id: &str, db: &PgPool) -> Result<Book, sqlx::Error> {
         Book,
         r#"
             SELECT
+                id,
                 key,
                 owner_id,
                 name,
@@ -109,6 +111,7 @@ pub async fn get_books(
         Book,
         r#"
             SELECT
+                id,
                 key,
                 owner_id,
                 name,
