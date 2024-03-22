@@ -156,6 +156,7 @@ pub async fn get_books(
         books
             .into_iter()
             .map(|book| BookResponse {
+                id: book.id,
                 key: book.key,
                 owner_id: book.owner_id,
                 name: book.name,

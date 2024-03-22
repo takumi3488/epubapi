@@ -61,6 +61,7 @@
                   "items": {
                     "type": "object",
                     "required": [
+                      "id",
                       "key",
                       "owner_id",
                       "name",
@@ -83,6 +84,9 @@
                         "type": "string"
                       },
                       "date": {
+                        "type": "string"
+                      },
+                      "id": {
                         "type": "string"
                       },
                       "key": {
@@ -1000,6 +1004,7 @@
       "BookResponse": {
         "type": "object",
         "required": [
+          "id",
           "key",
           "owner_id",
           "name",
@@ -1022,6 +1027,9 @@
             "type": "string"
           },
           "date": {
+            "type": "string"
+          },
+          "id": {
             "type": "string"
           },
           "key": {
