@@ -32,6 +32,7 @@ pub struct Book {
 
 #[derive(ToSchema, Serialize, Deserialize)]
 pub struct BookResponse {
+    pub id: String,
     pub key: String,
     pub owner_id: String,
     pub name: String,
