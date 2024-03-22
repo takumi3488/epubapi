@@ -18,7 +18,7 @@ pub enum UserRole {
     User,
 }
 
-#[derive(sqlx::FromRow, Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct User {
     pub id: String,
     pub password: String,
