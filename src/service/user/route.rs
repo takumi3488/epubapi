@@ -41,7 +41,7 @@ pub async fn new_user(
         AppendHeaders([(
             SET_COOKIE,
             format!(
-                "token={};Domain={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=None;",
+                "token={};Domain={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=None",
                 jwt,
                 env::var("DOMAIN").unwrap_or("localhost".to_string()),
                 3600 * 24 * 30
@@ -82,7 +82,7 @@ pub async fn login(
         AppendHeaders([(
             SET_COOKIE,
             format!(
-                "token={};Domain={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=None;",
+                "token={};Domain={};Max-Age={};Path=/;Secure;HttpOnly;SameSite=None",
                 jwt,
                 env::var("DOMAIN").unwrap_or("localhost".to_string()),
                 3600 * 24 * 30
