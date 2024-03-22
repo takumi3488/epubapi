@@ -307,8 +307,7 @@ pub async fn get_epub(
         .collect()
         .await
         .expect("failed to collect body")
-        .into_bytes()
-        .to_vec();
+        .into_bytes();
 
     (StatusCode::OK, epub).into_response()
 }
@@ -382,7 +381,9 @@ mod tests {
     #[tokio::test]
     async fn test_get_cover_image() {
         // GET /books (no query and real cover image)
-        let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap()).await.unwrap();
+        let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
+            .await
+            .unwrap();
         let router = init_app(&pool);
         let minio_cookie = token_cookie_from_user_id("minio_user_id");
         let req = Request::builder()
