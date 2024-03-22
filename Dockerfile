@@ -31,4 +31,5 @@ ENTRYPOINT ["/img2epub"]
 
 FROM scratch AS server
 COPY --from=builder /server /server
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 ENTRYPOINT ["/server"]
