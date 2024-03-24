@@ -40,11 +40,26 @@ pub async fn get_books(
     let user_id = match user_id_from_header(&headers) {
         Some(id) => id,
         None => {
-            return (
-                StatusCode::UNAUTHORIZED,
-                Json(UserError::Unauthorized(String::from("missing user id"))),
-            )
-                .into_response()
+            let api_key = match headers.get("X-Api-Key").map(|v| v.to_str().unwrap()) {
+                Some(api_key) => api_key,
+                None => {
+                    return (
+                        StatusCode::UNAUTHORIZED,
+                        Json(UserError::Unauthorized(String::from("missing user id"))),
+                    )
+                        .into_response()
+                }
+            };
+            match get_user_id_by_api_key(api_key, &db).await {
+                Ok(id) => id,
+                Err(_) => {
+                    return (
+                        StatusCode::UNAUTHORIZED,
+                        Json(UserError::Unauthorized(String::from("incorrect api key"))),
+                    )
+                        .into_response()
+                }
+            }
         }
     };
 
@@ -375,6 +390,21 @@ mod tests {
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let text = from_utf8(&*&bytes).unwrap();
         assert_eq!(text, r#"[]"#);
+
+        // GET /books (with api key)
+        let req = Request::builder()
+            .uri("/books")
+            .header("X-Api-Key", "user_api_key")
+            .body(Body::empty())
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 200);
+        let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
+        let text = from_utf8(&*&bytes).unwrap();
+        assert!(text.contains(r#""key":"user_public_book_key""#));
+        assert!(text.contains(r#""key":"user_private_book_key""#));
+        assert!(text.contains(r#""key":"admin_public_book_key""#));
+        assert!(!text.contains(r#""key":"admin_private_book_key""#));
     }
 
     /// 実際のcover_imageの取得のテスト
