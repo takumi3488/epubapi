@@ -21,7 +21,6 @@ pub enum UserRole {
 #[derive(Debug, Serialize, ToSchema)]
 pub struct User {
     pub id: String,
-    pub password: String,
     #[schema(inline)]
     pub role: UserRole,
     pub api_key: String,
@@ -289,7 +288,6 @@ pub async fn show_user(id: &str, db: &PgPool) -> Result<User, sqlx::Error> {
     .await?;
     Ok(User {
         id: user.id,
-        password: user.password,
         role: user.role,
         api_key: user.api_key,
         invitations: invitations.iter().map(|i| i.code.clone()).collect(),
