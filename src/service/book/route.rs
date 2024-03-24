@@ -37,29 +37,14 @@ pub async fn get_books(
     query: Query<model::BookQuery>,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
-            let api_key = match headers.get("X-Api-Key").map(|v| v.to_str().unwrap()) {
-                Some(api_key) => api_key,
-                None => {
-                    return (
-                        StatusCode::UNAUTHORIZED,
-                        Json(UserError::Unauthorized(String::from("missing user id"))),
-                    )
-                        .into_response()
-                }
-            };
-            match get_user_id_by_api_key(api_key, &db).await {
-                Ok(id) => id,
-                Err(_) => {
-                    return (
-                        StatusCode::UNAUTHORIZED,
-                        Json(UserError::Unauthorized(String::from("incorrect api key"))),
-                    )
-                        .into_response()
-                }
-            }
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(UserError::Unauthorized(String::from("missing user id"))),
+            )
+                .into_response()
         }
     };
 
@@ -168,7 +153,7 @@ pub async fn add_tag_to_book(
     State(db): State<PgPool>,
     Json(req): Json<model::AddTagRequest>,
 ) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
             return (
@@ -199,7 +184,7 @@ pub async fn delete_tag_from_book(
     headers: HeaderMap,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
             return (
@@ -232,7 +217,7 @@ pub async fn update_book(
     State(db): State<PgPool>,
     Json(req): Json<model::UpdateBookRequest>,
 ) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
             return (
@@ -263,7 +248,7 @@ pub async fn delete_book(
     headers: HeaderMap,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
             return (
@@ -286,7 +271,7 @@ pub async fn get_epub(
     headers: HeaderMap,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
             return (

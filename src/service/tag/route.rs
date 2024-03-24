@@ -23,7 +23,7 @@ pub async fn new_tag(
     State(db): State<PgPool>,
     Json(body): Json<model::NewTagRequest>,
 ) -> impl IntoResponse {
-    if user_id_from_header(&headers).is_none() {
+    if user_id_from_header(&headers, &db).await.is_none() {
         return (StatusCode::UNAUTHORIZED).into_response();
     }
     match model::create_tag(&body.name, &db).await {
@@ -48,7 +48,7 @@ pub async fn update_tag(
     State(db): State<PgPool>,
     Json(body): Json<model::NewTagRequest>,
 ) -> impl IntoResponse {
-    match user_id_from_header(&headers) {
+    match user_id_from_header(&headers, &db).await {
         Some(id) => {
             if !is_admin(&db, &id).await {
                 return (StatusCode::UNAUTHORIZED).into_response();
@@ -76,7 +76,7 @@ pub async fn delete_tag(
     State(db): State<PgPool>,
     Path(name): Path<String>,
 ) -> impl IntoResponse {
-    match user_id_from_header(&headers) {
+    match user_id_from_header(&headers, &db).await {
         Some(id) => {
             if !is_admin(&db, &id).await {
                 return (StatusCode::UNAUTHORIZED).into_response();
@@ -100,7 +100,7 @@ pub async fn delete_tag(
     )
 )]
 pub async fn get_tags(headers: HeaderMap, State(db): State<PgPool>) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => return (StatusCode::UNAUTHORIZED).into_response(),
     };

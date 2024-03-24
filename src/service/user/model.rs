@@ -131,17 +131,22 @@ pub fn varify_token(token: &str) -> Option<String> {
 }
 
 /// HeaderMapからJWTを取り出して、認証に成功したらユーザーIDを返す
-pub fn user_id_from_header(headers: &axum::http::HeaderMap) -> Option<String> {
-    match headers.get("Cookie") {
-        Some(cookie) => {
-            let cookie = cookie.to_str().unwrap();
-            Cookie::split_parse(cookie)
-                .find(|c| c.clone().unwrap().name() == "token")
-                .map(|c| c.unwrap().value().to_string())
-                .and_then(|token| varify_token(&token))
-        }
-        None => None,
+pub async fn user_id_from_header(headers: &axum::http::HeaderMap, db: &PgPool) -> Option<String> {
+    if let Some(cookie) = headers.get("Cookie") {
+        let cookie = cookie.to_str().unwrap();
+        return Cookie::split_parse(cookie)
+            .find(|c| c.clone().unwrap().name() == "token")
+            .map(|c| c.unwrap().value().to_string())
+            .and_then(|token| varify_token(&token));
     }
+    if let Some(api_key) = headers.get("X-Api-Key") {
+        let user_id = get_user_id_by_api_key(api_key.to_str().unwrap(), db).await;
+        return match user_id {
+            Ok(id) => Some(id),
+            Err(_) => None,
+        };
+    }
+    None
 }
 
 /// user_idを受け取ってCookieを返す

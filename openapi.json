@@ -801,7 +801,6 @@
                   "type": "object",
                   "required": [
                     "id",
-                    "password",
                     "role",
                     "api_key",
                     "invitations"
@@ -818,9 +817,6 @@
                       "items": {
                         "type": "string"
                       }
-                    },
-                    "password": {
-                      "type": "string"
                     },
                     "role": {
                       "type": "string",
@@ -1190,7 +1186,6 @@
         "type": "object",
         "required": [
           "id",
-          "password",
           "role",
           "api_key",
           "invitations"
@@ -1207,9 +1202,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "password": {
-            "type": "string"
           },
           "role": {
             "type": "string",

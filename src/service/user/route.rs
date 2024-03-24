@@ -103,7 +103,7 @@ pub async fn login(
     )
 )]
 pub async fn show_user(headers: HeaderMap, State(db): State<PgPool>) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers) {
+    let user_id = match user_id_from_header(&headers, &db).await {
         Some(id) => id,
         None => {
             return (
