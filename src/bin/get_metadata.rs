@@ -100,8 +100,8 @@ async fn main() {
                 key,
                 key.split('/').nth(0).unwrap(),
                 metadata.mdata("title").unwrap(),
-                metadata.mdata("creator").unwrap(),
-                metadata.mdata("publisher").unwrap(),
+                metadata.mdata("creator").unwrap_or_default(),
+                metadata.mdata("publisher").unwrap_or_default(),
                 metadata.mdata("date").unwrap(),
                 metadata.get_cover().unwrap().0
             )
