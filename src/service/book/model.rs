@@ -1,7 +1,6 @@
 use std::env;
 
 use axum::extract::Multipart;
-use base64::{prelude::BASE64_STANDARD, Engine};
 use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, PgPool};
 use utoipa::{IntoParams, ToSchema};
@@ -16,22 +15,8 @@ pub enum Visibility {
     Private,
 }
 
-#[derive(sqlx::FromRow, Serialize)]
+#[derive(sqlx::FromRow, ToSchema, Serialize, Deserialize)]
 pub struct Book {
-    pub id: String,
-    pub key: String,
-    pub owner_id: String,
-    pub name: String,
-    pub creator: String,
-    pub publisher: String,
-    pub date: String,
-    pub cover_image: Vec<u8>,
-    pub visibility: Visibility,
-    pub created_at: NaiveDateTime,
-}
-
-#[derive(ToSchema, Serialize, Deserialize)]
-pub struct BookResponse {
     pub id: String,
     pub key: String,
     pub owner_id: String,
@@ -107,7 +92,7 @@ pub async fn get_books(
     user_id: &str,
     query: BookQuery,
     db: &PgPool,
-) -> Result<Vec<BookResponse>, sqlx::Error> {
+) -> Result<Vec<Book>, sqlx::Error> {
     sqlx::query_as!(
         Book,
         r#"
@@ -152,23 +137,6 @@ pub async fn get_books(
     )
     .fetch_all(db)
     .await
-    .map(|books| {
-        books
-            .into_iter()
-            .map(|book| BookResponse {
-                id: book.id,
-                key: book.key,
-                owner_id: book.owner_id,
-                name: book.name,
-                creator: book.creator,
-                publisher: book.publisher,
-                date: book.date,
-                cover_image: BASE64_STANDARD.encode(&book.cover_image),
-                visibility: book.visibility,
-                created_at: book.created_at,
-            })
-            .collect()
-    })
 }
 
 pub async fn add_tag(

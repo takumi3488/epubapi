@@ -41,7 +41,7 @@
       {
         "ordinal": 7,
         "name": "cover_image",
-        "type_info": "Bytea"
+        "type_info": "Text"
       },
       {
         "ordinal": 8,

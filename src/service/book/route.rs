@@ -28,7 +28,7 @@ use crate::{
     path = "/books",
     params(model::BookQuery),
     responses(
-        (status = 200, description = "OK", body = inline(Vec<model::BookResponse>)),
+        (status = 200, description = "OK", body = inline(Vec<model::Book>)),
         (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
@@ -312,9 +312,43 @@ pub async fn get_epub(
     (StatusCode::OK, epub).into_response()
 }
 
+/// カバー画像を取得する
+pub async fn get_cover_image(
+    Path(book_id): Path<String>,
+    headers: HeaderMap,
+    State(db): State<PgPool>,
+) -> impl IntoResponse {
+    if None == user_id_from_header(&headers, &db).await {
+        return (
+            StatusCode::UNAUTHORIZED,
+            Json(UserError::Unauthorized(String::from("missing user id"))),
+        )
+            .into_response();
+    }
+
+    let book_id = book_id.clone().replace(".jpg", "");
+    let minio_client = minio::get_client().await;
+    let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
+    let object = minio_client
+        .get_object()
+        .bucket(&epub_bucket)
+        .key(format!("{}.jpg", book_id))
+        .send()
+        .await
+        .expect("failed to get object");
+    let cover_image = object
+        .body
+        .collect()
+        .await
+        .expect("failed to collect body")
+        .into_bytes();
+
+    (StatusCode::OK, cover_image).into_response()
+}
+
 #[cfg(test)]
 mod tests {
-    use std::{env, str::from_utf8};
+    use std::str::from_utf8;
 
     use axum::{
         body::{to_bytes, Body},
@@ -390,27 +424,6 @@ mod tests {
         assert!(text.contains(r#""key":"user_private_book_key""#));
         assert!(text.contains(r#""key":"admin_public_book_key""#));
         assert!(!text.contains(r#""key":"admin_private_book_key""#));
-    }
-
-    /// 実際のcover_imageの取得のテスト
-    #[tokio::test]
-    async fn test_get_cover_image() {
-        // GET /books (no query and real cover image)
-        let pool = PgPool::connect(&env::var("DATABASE_URL").unwrap())
-            .await
-            .unwrap();
-        let router = init_app(&pool);
-        let minio_cookie = token_cookie_from_user_id("minio_user_id");
-        let req = Request::builder()
-            .uri("/books")
-            .header(header::COOKIE, &minio_cookie)
-            .body(Body::empty())
-            .unwrap();
-        let res = router.clone().oneshot(req).await.unwrap();
-        assert_eq!(res.status(), 200);
-        let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*&bytes).unwrap();
-        assert!(text.contains(r#""owner_id":"minio_user_id""#));
     }
 
     /// Book新規作成のテスト

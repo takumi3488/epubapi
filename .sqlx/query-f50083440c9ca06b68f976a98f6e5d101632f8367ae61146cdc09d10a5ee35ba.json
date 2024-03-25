@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO books (\n                    id,\n                    key,\n                    owner_id,\n                    name,\n                    creator,\n                    publisher,\n                    date,\n                    cover_image\n                ) VALUES (\n                    $1,\n                    $2,\n                    $3,\n                    $4,\n                    $5,\n                    $6,\n                    $7,\n                    $8\n                )",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f50083440c9ca06b68f976a98f6e5d101632f8367ae61146cdc09d10a5ee35ba"
+}

@@ -978,26 +978,7 @@
           }
         }
       },
-      "BookQuery": {
-        "type": "object",
-        "properties": {
-          "keyword": {
-            "type": "string",
-            "nullable": true
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true,
-            "minimum": 0
-          },
-          "tag": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "BookResponse": {
+      "Book": {
         "type": "object",
         "required": [
           "id",
@@ -1046,6 +1027,25 @@
               "public",
               "private"
             ]
+          }
+        }
+      },
+      "BookQuery": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "nullable": true
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "minimum": 0
+          },
+          "tag": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

@@ -1,3 +1,4 @@
+use aws_sdk_s3::primitives::ByteStream;
 use epub::doc::EpubDoc;
 use epubapi::{db::db::connect_db, minio::minio::get_client};
 use sqlx::query;
@@ -59,6 +60,7 @@ async fn main() {
         {
             let key = object.key().unwrap();
             println!("{}のメタデータを取得中...", key);
+            let uuid = Uuid::new_v4().to_string();
             let mut output = minio_client
                 .get_object()
                 .bucket(epub_bucket)
@@ -78,9 +80,24 @@ async fn main() {
             // メタデータを取得する
             let mut metadata = EpubDoc::new(&tmp_path).unwrap();
 
+            // カバー画像をMinioに保存する
+            let cover_image_bytes = metadata.get_cover().unwrap().0;
+            let cover_image_byte_stream = ByteStream::from(cover_image_bytes);
+            let cover_image_key = format!("{}.jpg", uuid);
+            minio_client
+                .put_object()
+                .bucket(epub_bucket)
+                .key(&cover_image_key)
+                .body(cover_image_byte_stream)
+                .content_type("image/jpeg")
+                .send()
+                .await
+                .unwrap();
+
             // メタデータをDBに保存する
             query!(
                 r#"INSERT INTO books (
+                    id,
                     key,
                     owner_id,
                     name,
@@ -95,15 +112,17 @@ async fn main() {
                     $4,
                     $5,
                     $6,
-                    $7
+                    $7,
+                    $8
                 )"#,
+                uuid,
                 key,
                 key.split('/').nth(0).unwrap(),
                 metadata.mdata("title").unwrap(),
                 metadata.mdata("creator").unwrap_or_default(),
                 metadata.mdata("publisher").unwrap_or_default(),
                 metadata.mdata("date").unwrap(),
-                metadata.get_cover().unwrap().0
+                cover_image_key
             )
             .execute(&db_client)
             .await
