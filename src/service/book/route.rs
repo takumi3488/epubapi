@@ -281,6 +281,7 @@ pub async fn get_epub(
                 .into_response()
         }
     };
+    let book_id = book_id.replace(".epub", "");
     let book = match model::get_book(&book_id, &db).await {
         Ok(book) => book,
         Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
