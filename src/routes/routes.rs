@@ -6,7 +6,7 @@ use axum::{
     routing::{delete, get, post, put},
     Router,
 };
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -90,6 +90,7 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
             "/books/:book_id/tags/:tag_name",
             delete(delete_tag_from_book),
         )
+        .nest_service("/bibi", ServeDir::new("bibi"))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(db.clone())
         .layer(
