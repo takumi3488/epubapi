@@ -280,14 +280,14 @@ pub async fn get_cover_image(
             .into_response();
     }
 
-    let book_id = book_id.clone().replace(".webp", "");
+    let book_id = book_id.clone().replace(".avif", "");
     let endpoint = env::var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let minio_client = minio::get_client(&endpoint).await;
     let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
     let object = minio_client
         .get_object()
         .bucket(&epub_bucket)
-        .key(format!("{}.webp", book_id))
+        .key(format!("{}.avif", book_id))
         .send()
         .await
         .expect("failed to get object");

@@ -105,17 +105,17 @@ async fn main() {
             resized_img
                 .write_to(
                     &mut Cursor::new(&mut resized_image_bytes),
-                    image::ImageFormat::WebP,
+                    image::ImageFormat::Avif,
                 )
                 .unwrap();
             let cover_image_byte_stream = ByteStream::from(resized_image_bytes);
-            let cover_image_key = format!("{}.webp", uuid);
+            let cover_image_key = format!("{}.avif", uuid);
             minio_client
                 .put_object()
                 .bucket(epub_bucket)
                 .key(&cover_image_key)
                 .body(cover_image_byte_stream)
-                .content_type("image/webp")
+                .content_type("image/avif")
                 .send()
                 .await
                 .unwrap();
