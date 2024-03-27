@@ -9,11 +9,12 @@ use uuid::Uuid;
 #[tokio::main]
 async fn main() {
     // 環境変数の読み込み
+    let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let epub_bucket: &str = &var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
 
     // クライアントの初期化
     let db_client = connect_db().await;
-    let minio_client = get_client().await;
+    let minio_client = get_client(&endpoint).await;
 
     // ユーザーIDを取得する
     let user_ids: Vec<String> = query!("SELECT id FROM users")

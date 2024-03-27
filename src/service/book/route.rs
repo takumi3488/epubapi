@@ -85,7 +85,8 @@ pub async fn new_book(
         }
     };
 
-    let client = minio::get_client().await;
+    let endpoint = env::var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
+    let client = minio::get_client(&endpoint).await;
     let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
     let id = Uuid::new_v4();
     let key = format!("{}/{}.epub", user_id, id.to_string());
@@ -280,7 +281,8 @@ pub async fn get_cover_image(
     }
 
     let book_id = book_id.clone().replace(".jpg", "");
-    let minio_client = minio::get_client().await;
+    let endpoint = env::var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
+    let minio_client = minio::get_client(&endpoint).await;
     let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
     let object = minio_client
         .get_object()

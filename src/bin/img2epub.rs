@@ -17,11 +17,12 @@ use uuid::Uuid;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     // 環境変数の読み込み
+    let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let images_bucket: &str = &var("IMAGES_BUCKET").expect("IMAGES_BUCKET is not set");
     let epub_bucket: &str = &var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
 
     // クライアントの初期化
-    let minio_client = get_client().await;
+    let minio_client = get_client(&endpoint).await;
 
     // images_bucketに未処理のオブジェクトがあれば処理する
     let objects = match minio_client

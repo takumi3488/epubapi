@@ -146,7 +146,8 @@ pub async fn get_books(
     };
 
     // MinIOから署名付きURLを取得してBookResponseを作成
-    let minio_client = minio::get_client().await;
+    let endpoint = env::var("PUBLIC_S3_ENDPOINT").expect("PUBLIC_S3_ENDPOINT is not set");
+    let minio_client = minio::get_client(&endpoint).await;
     let presigning_tasks = books
         .iter()
         .map(|book| {
@@ -304,7 +305,8 @@ pub async fn delete_book(book_id: &str, user_id: &str, db: &PgPool) -> Result<()
         return Err(sqlx::Error::RowNotFound);
     }
 
-    let minio_client = crate::minio::minio::get_client().await;
+    let endpoint = env::var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
+    let minio_client = minio::get_client(&endpoint).await;
     if let Err(e) = minio_client
         .delete_object()
         .bucket(env::var("EPUB_BUCKET").unwrap())
