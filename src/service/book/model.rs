@@ -1,13 +1,15 @@
-use std::env;
+use std::{env, time::Duration};
 
+use aws_sdk_s3::presigning::PresigningConfig;
 use axum::extract::Multipart;
+use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, PgPool};
 use utoipa::{IntoParams, ToSchema};
 
-use crate::service::user::model::is_admin;
+use crate::{minio::minio, service::user::model::is_admin};
 
-#[derive(Serialize, Deserialize, Debug, sqlx::Type, ToSchema, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, sqlx::Type, ToSchema, PartialEq, Clone, Copy)]
 #[sqlx(type_name = "visibility", rename_all = "lowercase")]
 #[serde(rename_all = "lowercase")]
 pub enum Visibility {
@@ -29,6 +31,23 @@ pub struct Book {
     pub visibility: Visibility,
     #[schema(value_type = String, format = Date)]
     pub created_at: NaiveDateTime,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct BookResponse {
+    pub id: String,
+    pub owner_id: String,
+    pub name: String,
+    pub creator: String,
+    pub publisher: String,
+    pub date: String,
+    pub cover_image: String,
+    #[schema(inline)]
+    pub visibility: Visibility,
+    #[schema(value_type = String, format = Date)]
+    pub created_at: NaiveDateTime,
+    pub tags: Vec<String>,
+    pub epub_url: String,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, IntoParams, Clone)]
@@ -64,66 +83,48 @@ pub struct DeleteBookRequest {
     pub key: String,
 }
 
-pub async fn get_book(book_id: &str, db: &PgPool) -> Result<Book, sqlx::Error> {
-    sqlx::query_as!(
-        Book,
-        r#"
-            SELECT
-                id,
-                key,
-                owner_id,
-                name,
-                creator,
-                publisher,
-                date,
-                cover_image,
-                visibility as "visibility: _",
-                created_at
-            FROM books
-            WHERE id = $1
-        "#,
-        book_id
-    )
-    .fetch_one(db)
-    .await
-}
-
 pub async fn get_books(
     user_id: &str,
     query: BookQuery,
     db: &PgPool,
-) -> Result<Vec<Book>, sqlx::Error> {
-    sqlx::query_as!(
+) -> Result<Vec<BookResponse>, sqlx::Error> {
+    // データベースから本の情報を取得
+    let books = match sqlx::query_as!(
         Book,
         r#"
             SELECT
-                id,
-                key,
-                owner_id,
-                name,
-                creator,
-                publisher,
-                date,
-                cover_image,
-                visibility as "visibility: _",
-                created_at
-            FROM books
+                b.id as id,
+                b.key as key,
+                b.owner_id as owner_id,
+                b.name as name,
+                b.creator as creator,
+                b.publisher as publisher,
+                b.date as date,
+                b.cover_image as cover_image,
+                b.created_at as created_at,
+                b.visibility as "visibility: _"
+            FROM books b
+            LEFT JOIN book_tags bt
+                ON b.id = bt.book_id
+            LEFT JOIN tags t
+                ON bt.tag_name = t.name
             WHERE
                 (
-                    owner_id = $1
-                    OR visibility = 'public'
+                    b.owner_id = $1
+                    OR b.visibility = 'public'
                 ) AND (
-                    name ILIKE $2
-                    OR creator ILIKE $2
+                    b.name ILIKE $2
+                    OR b.creator ILIKE $2
                 ) AND (
                     $3 = ''
                     OR EXISTS (
                         SELECT 1
-                        FROM book_tags
-                        WHERE book_tags.book_id = books.id
-                        AND book_tags.tag_name = $3
+                        FROM book_tags bt
+                        WHERE bt.book_id = b.id
+                        AND bt.tag_name = $3
                     )
                 )
+            GROUP BY b.id
             ORDER BY created_at DESC
             LIMIT 24 OFFSET $4
         "#,
@@ -137,6 +138,50 @@ pub async fn get_books(
     )
     .fetch_all(db)
     .await
+    {
+        Ok(books) => books,
+        Err(e) => {
+            panic!("{}", e.to_string());
+        }
+    };
+
+    // MinIOから署名付きURLを取得してBookResponseを作成
+    let minio_client = minio::get_client().await;
+    let presigning_tasks = books
+        .iter()
+        .map(|book| {
+            let minio_client = minio_client.clone();
+            async move {
+                let epub_bucket = env::var("EPUB_BUCKET").unwrap();
+                let presigned = minio_client
+                    .get_object()
+                    .bucket(&epub_bucket)
+                    .key(book.key.clone())
+                    .presigned(
+                        PresigningConfig::expires_in(Duration::from_secs(60 * 60 * 24 * 7))
+                            .unwrap(),
+                    )
+                    .await
+                    .unwrap();
+                BookResponse {
+                    id: book.id.clone(),
+                    owner_id: book.owner_id.clone(),
+                    name: book.name.clone(),
+                    creator: book.creator.clone(),
+                    publisher: book.publisher.clone(),
+                    date: book.date.clone(),
+                    cover_image: book.cover_image.clone(),
+                    visibility: book.visibility.clone(),
+                    created_at: book.created_at,
+                    tags: vec![],
+                    epub_url: presigned.uri().to_string(),
+                }
+            }
+        })
+        .collect::<Vec<_>>();
+    let presigned_urls = join_all(presigning_tasks).await;
+
+    Ok(presigned_urls)
 }
 
 pub async fn add_tag(

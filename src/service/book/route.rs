@@ -1,6 +1,6 @@
 use std::env;
 
-use super::model::{self, is_available};
+use super::model;
 use aws_sdk_s3::{
     operation::create_multipart_upload::CreateMultipartUploadOutput,
     primitives::ByteStream,
@@ -28,7 +28,7 @@ use crate::{
     path = "/books",
     params(model::BookQuery),
     responses(
-        (status = 200, description = "OK", body = inline(Vec<model::Book>)),
+        (status = 200, description = "OK", body = inline(Vec<model::BookResponse>)),
         (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
@@ -265,54 +265,6 @@ pub async fn delete_book(
     }
 }
 
-/// epubファイルを取得する
-pub async fn get_epub(
-    Path(book_id): Path<String>,
-    headers: HeaderMap,
-    State(db): State<PgPool>,
-) -> impl IntoResponse {
-    let user_id = match user_id_from_header(&headers, &db).await {
-        Some(id) => id,
-        None => {
-            return (
-                StatusCode::UNAUTHORIZED,
-                Json(UserError::Unauthorized(String::from("missing user id"))),
-            )
-                .into_response()
-        }
-    };
-    let book_id = book_id.replace(".epub", "");
-    let book = match model::get_book(&book_id, &db).await {
-        Ok(book) => book,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
-    };
-    if !is_available(&book, &user_id, &db).await {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(UserError::Unauthorized(String::from("unauthorized"))),
-        )
-            .into_response();
-    }
-
-    let minio_client = minio::get_client().await;
-    let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
-    let object = minio_client
-        .get_object()
-        .bucket(&epub_bucket)
-        .key(&book.key)
-        .send()
-        .await
-        .expect("failed to get object");
-    let epub = object
-        .body
-        .collect()
-        .await
-        .expect("failed to collect body")
-        .into_bytes();
-
-    (StatusCode::OK, epub).into_response()
-}
-
 /// カバー画像を取得する
 pub async fn get_cover_image(
     Path(book_id): Path<String>,
@@ -380,10 +332,10 @@ mod tests {
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let text = from_utf8(&*&bytes).unwrap();
-        assert!(text.contains(r#""key":"user_public_book_key""#));
-        assert!(text.contains(r#""key":"user_private_book_key""#));
-        assert!(text.contains(r#""key":"admin_public_book_key""#));
-        assert!(!text.contains(r#""key":"admin_private_book_key""#));
+        assert!(text.contains(r#""id":"user_public_book_id""#));
+        assert!(text.contains(r#""id":"user_private_book_id""#));
+        assert!(text.contains(r#""id":"admin_public_book_id""#));
+        assert!(!text.contains(r#""id":"admin_private_book_id""#));
 
         // GET /books (with query)
         let req = Request::builder()
@@ -395,10 +347,10 @@ mod tests {
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let text = from_utf8(&*&bytes).unwrap();
-        assert!(text.contains(r#""key":"user_public_book_key""#));
-        assert!(text.contains(r#""key":"user_private_book_key""#));
-        assert!(!text.contains(r#""key":"admin_public_book_key""#));
-        assert!(!text.contains(r#""key":"admin_private_book_key""#));
+        assert!(text.contains(r#""id":"user_public_book_id""#));
+        assert!(text.contains(r#""id":"user_private_book_id""#));
+        assert!(!text.contains(r#""id":"admin_public_book_id""#));
+        assert!(!text.contains(r#""id":"admin_private_book_id""#));
 
         let req = Request::builder()
             .uri(r#"/books?page=2&keyword=user&tag=test_tag"#)
@@ -421,10 +373,10 @@ mod tests {
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
         let text = from_utf8(&*&bytes).unwrap();
-        assert!(text.contains(r#""key":"user_public_book_key""#));
-        assert!(text.contains(r#""key":"user_private_book_key""#));
-        assert!(text.contains(r#""key":"admin_public_book_key""#));
-        assert!(!text.contains(r#""key":"admin_private_book_key""#));
+        assert!(text.contains(r#""id":"user_public_book_id""#));
+        assert!(text.contains(r#""id":"user_private_book_id""#));
+        assert!(text.contains(r#""id":"admin_public_book_id""#));
+        assert!(!text.contains(r#""id":"admin_private_book_id""#));
     }
 
     /// Book新規作成のテスト
@@ -624,23 +576,5 @@ mod tests {
             .unwrap();
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 204);
-    }
-
-    /// epubファイル取得のテスト
-    #[sqlx::test(fixtures("users", "tags", "book_with_tags"))]
-    async fn test_get_epub(pool: PgPool) {
-        let router = init_app(&pool);
-        let user_cookie = token_cookie_from_user_id("test_user_id");
-
-        // GET /books/{book_id}
-        let req = Request::builder()
-            .uri("/books/test_book_id")
-            .header(header::COOKIE, &user_cookie)
-            .body(Body::empty())
-            .unwrap();
-        let res = router.clone().oneshot(req).await.unwrap();
-        assert_eq!(res.status(), 200);
-        let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        assert_eq!(&bytes[..2], b"PK");
     }
 }

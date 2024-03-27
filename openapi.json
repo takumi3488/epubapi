@@ -62,7 +62,6 @@
                     "type": "object",
                     "required": [
                       "id",
-                      "key",
                       "owner_id",
                       "name",
                       "creator",
@@ -70,7 +69,9 @@
                       "date",
                       "cover_image",
                       "visibility",
-                      "created_at"
+                      "created_at",
+                      "tags",
+                      "epub_url"
                     ],
                     "properties": {
                       "cover_image": {
@@ -86,10 +87,10 @@
                       "date": {
                         "type": "string"
                       },
-                      "id": {
+                      "epub_url": {
                         "type": "string"
                       },
-                      "key": {
+                      "id": {
                         "type": "string"
                       },
                       "name": {
@@ -100,6 +101,12 @@
                       },
                       "publisher": {
                         "type": "string"
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
                       },
                       "visibility": {
                         "type": "string",
@@ -978,58 +985,6 @@
           }
         }
       },
-      "Book": {
-        "type": "object",
-        "required": [
-          "id",
-          "key",
-          "owner_id",
-          "name",
-          "creator",
-          "publisher",
-          "date",
-          "cover_image",
-          "visibility",
-          "created_at"
-        ],
-        "properties": {
-          "cover_image": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "creator": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "key": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "owner_id": {
-            "type": "string"
-          },
-          "publisher": {
-            "type": "string"
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "public",
-              "private"
-            ]
-          }
-        }
-      },
       "BookQuery": {
         "type": "object",
         "properties": {
@@ -1046,6 +1001,65 @@
           "tag": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "BookResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "owner_id",
+          "name",
+          "creator",
+          "publisher",
+          "date",
+          "cover_image",
+          "visibility",
+          "created_at",
+          "tags",
+          "epub_url"
+        ],
+        "properties": {
+          "cover_image": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "creator": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "epub_url": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
           }
         }
       },
