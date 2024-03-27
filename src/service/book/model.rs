@@ -17,7 +17,15 @@ pub enum Visibility {
     Private,
 }
 
-#[derive(sqlx::FromRow, ToSchema, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, sqlx::Type, ToSchema, PartialEq, Clone, Copy)]
+#[sqlx(type_name = "direction", rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
+pub enum Direction {
+    Ltr,
+    Rtl,
+}
+
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct Book {
     pub id: String,
     pub key: String,
@@ -27,9 +35,8 @@ pub struct Book {
     pub publisher: String,
     pub date: String,
     pub cover_image: String,
-    #[schema(inline)]
     pub visibility: Visibility,
-    #[schema(value_type = String, format = Date)]
+    pub direction: Direction,
     pub created_at: NaiveDateTime,
 }
 
@@ -44,6 +51,8 @@ pub struct BookResponse {
     pub cover_image: String,
     #[schema(inline)]
     pub visibility: Visibility,
+    #[schema(inline)]
+    pub direction: Direction,
     #[schema(value_type = String, format = Date)]
     pub created_at: NaiveDateTime,
     pub tags: Vec<String>,
@@ -102,7 +111,8 @@ pub async fn get_books(
                 b.date as date,
                 b.cover_image as cover_image,
                 b.created_at as created_at,
-                b.visibility as "visibility: _"
+                b.visibility as "visibility: _",
+                b.direction as "direction: _"
             FROM books b
             LEFT JOIN book_tags bt
                 ON b.id = bt.book_id
@@ -176,6 +186,7 @@ pub async fn get_books(
                     created_at: book.created_at,
                     tags: vec![],
                     epub_url: presigned.uri().to_string(),
+                    direction: book.direction.clone(),
                 }
             }
         })

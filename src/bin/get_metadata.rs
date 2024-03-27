@@ -1,6 +1,6 @@
 use aws_sdk_s3::primitives::ByteStream;
 use epub::doc::EpubDoc;
-use epubapi::{db::db::connect_db, minio::minio::get_client};
+use epubapi::{db::db::connect_db, minio::minio::get_client, service::book::model::Direction};
 use sqlx::query;
 use std::{env::var, fs::File, io::Write};
 use tokio::fs::create_dir;
@@ -80,6 +80,14 @@ async fn main() {
 
             // メタデータを取得する
             let mut metadata = EpubDoc::new(&tmp_path).unwrap();
+            let direction = if metadata
+                .mdata("primary-writing-mode")
+                .is_some_and(|d| d == "vertical-rl")
+            {
+                Direction::Rtl
+            } else {
+                Direction::Ltr
+            };
 
             // カバー画像をMinioに保存する
             let cover_image_bytes = metadata.get_cover().unwrap().0;
@@ -105,7 +113,8 @@ async fn main() {
                     creator,
                     publisher,
                     date,
-                    cover_image
+                    cover_image,
+                    direction
                 ) VALUES (
                     $1,
                     $2,
@@ -114,7 +123,8 @@ async fn main() {
                     $5,
                     $6,
                     $7,
-                    $8
+                    $8,
+                    $9
                 )"#,
                 uuid,
                 key,
@@ -123,7 +133,8 @@ async fn main() {
                 metadata.mdata("creator").unwrap_or_default(),
                 metadata.mdata("publisher").unwrap_or_default(),
                 metadata.mdata("date").unwrap(),
-                cover_image_key
+                cover_image_key,
+                direction as _,
             )
             .execute(&db_client)
             .await

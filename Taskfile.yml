@@ -64,6 +64,6 @@ tasks:
   all:
     cmds:
       - task: rebuild
-      - docker compose run --rm img2epub
-      - docker compose run --rm get_metadata
+      - cargo run --bin img2epub
+      - cargo run --bin get_metadata
       - task: test

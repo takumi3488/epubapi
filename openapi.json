@@ -69,6 +69,7 @@
                       "date",
                       "cover_image",
                       "visibility",
+                      "direction",
                       "created_at",
                       "tags",
                       "epub_url"
@@ -86,6 +87,13 @@
                       },
                       "date": {
                         "type": "string"
+                      },
+                      "direction": {
+                        "type": "string",
+                        "enum": [
+                          "ltr",
+                          "rtl"
+                        ]
                       },
                       "epub_url": {
                         "type": "string"
@@ -1015,6 +1023,7 @@
           "date",
           "cover_image",
           "visibility",
+          "direction",
           "created_at",
           "tags",
           "epub_url"
@@ -1032,6 +1041,13 @@
           },
           "date": {
             "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "ltr",
+              "rtl"
+            ]
           },
           "epub_url": {
             "type": "string"
@@ -1108,6 +1124,13 @@
             "type": "string"
           }
         }
+      },
+      "Direction": {
+        "type": "string",
+        "enum": [
+          "ltr",
+          "rtl"
+        ]
       },
       "LoginRequest": {
         "type": "object",

@@ -6,7 +6,7 @@ use axum::{
     routing::{delete, get, patch, post, put},
     Router,
 };
-use tower_http::{cors::CorsLayer, services::ServeDir};
+use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -52,6 +52,7 @@ use crate::service::{
             crate::service::book::model::BookResponse,
             crate::service::book::model::BookQuery,
             crate::service::book::model::Visibility,
+            crate::service::book::model::Direction,
             crate::service::book::model::UpdateBookRequest,
             crate::service::book::model::AddTagRequest,
             crate::service::book::model::DeleteTagRequest,
@@ -80,10 +81,7 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
                 .post(new_book)
                 .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 20)),
         )
-        .route(
-            "/books/:book_id",
-            patch(update_book).delete(delete_book),
-        )
+        .route("/books/:book_id", patch(update_book).delete(delete_book))
         .route("/covers/:book_id", get(get_cover_image))
         .route("/books/:book_id/tags", post(add_tag_to_book))
         .route(
