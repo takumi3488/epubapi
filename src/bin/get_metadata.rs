@@ -2,7 +2,11 @@ use aws_sdk_s3::primitives::ByteStream;
 use epub::doc::EpubDoc;
 use epubapi::{db::db::connect_db, minio::minio::get_client, service::book::model::Direction};
 use sqlx::query;
-use std::{env::var, fs::File, io::Write};
+use std::{
+    env::var,
+    fs::File,
+    io::{Cursor, Write},
+};
 use tokio::fs::create_dir;
 use uuid::Uuid;
 
@@ -91,14 +95,27 @@ async fn main() {
 
             // カバー画像をMinioに保存する
             let cover_image_bytes = metadata.get_cover().unwrap().0;
-            let cover_image_byte_stream = ByteStream::from(cover_image_bytes);
-            let cover_image_key = format!("{}.jpg", uuid);
+            let img = image::load_from_memory(&cover_image_bytes).unwrap();
+            let resized_img = img.resize(
+                img.width().min(500),
+                img.height().min(500),
+                image::imageops::FilterType::Lanczos3,
+            );
+            let mut resized_image_bytes = Vec::new();
+            resized_img
+                .write_to(
+                    &mut Cursor::new(&mut resized_image_bytes),
+                    image::ImageFormat::WebP,
+                )
+                .unwrap();
+            let cover_image_byte_stream = ByteStream::from(resized_image_bytes);
+            let cover_image_key = format!("{}.webp", uuid);
             minio_client
                 .put_object()
                 .bucket(epub_bucket)
                 .key(&cover_image_key)
                 .body(cover_image_byte_stream)
-                .content_type("image/jpeg")
+                .content_type("image/webp")
                 .send()
                 .await
                 .unwrap();
