@@ -1,8 +1,14 @@
 use axum::{
+    body::Body,
     extract::DefaultBodyLimit,
+    http::StatusCode,
+    middleware::Next,
+    response::Response,
     routing::{delete, get, patch, post, put},
     Router,
 };
+use http::Request;
+use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -84,6 +90,7 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
             "/books/:book_id/tags/:tag_name",
             delete(delete_tag_from_book),
         )
+        .layer(axum::middleware::from_fn(access_log_on_request))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(db.clone())
 }
@@ -91,6 +98,12 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
 /// ヘルスチェック
 pub async fn health() -> &'static str {
     "OK"
+}
+
+/// アクセスログを出力するミドルウェア
+async fn access_log_on_request(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
+    info!("{} {}", req.method(), req.uri());
+    Ok(next.run(req).await)
 }
 
 #[cfg(test)]
