@@ -1,13 +1,11 @@
 use axum::{
-    body::Body,
-    extract::DefaultBodyLimit,
+    extract::{DefaultBodyLimit, Request},
     http::StatusCode,
     middleware::Next,
     response::Response,
     routing::{delete, get, patch, post, put},
     Router,
 };
-use http::Request;
 use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -101,7 +99,7 @@ pub async fn health() -> &'static str {
 }
 
 /// アクセスログを出力するミドルウェア
-async fn access_log_on_request(req: Request<Body>, next: Next) -> Result<Response, StatusCode> {
+async fn access_log_on_request(req: Request, next: Next) -> Result<Response, StatusCode> {
     info!("{} {}", req.method(), req.uri());
     Ok(next.run(req).await)
 }

@@ -1158,7 +1158,6 @@ dependencies = [
  "ctor",
  "epub",
  "futures",
- "http 1.1.0",
  "image",
  "img2epub",
  "jsonwebtoken",
