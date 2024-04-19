@@ -33,7 +33,6 @@ mod tests {
         http::{header, Method, Request},
     };
     use serde_json::{json, to_string};
-    use sqlx;
     use tower::ServiceExt;
 
     #[sqlx::test(fixtures("invitations"))]

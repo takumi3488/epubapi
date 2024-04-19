@@ -1,12 +1,8 @@
-use std::env;
-
 use axum::{
     extract::DefaultBodyLimit,
-    http::{header, Method},
     routing::{delete, get, patch, post, put},
     Router,
 };
-use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -90,24 +86,6 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
         )
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(db.clone())
-        .layer(
-            CorsLayer::new()
-                .allow_credentials(true)
-                .allow_headers(vec![
-                    header::AUTHORIZATION,
-                    header::ACCEPT,
-                    header::CONTENT_TYPE,
-                    header::COOKIE,
-                ])
-                .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
-                .allow_origin(
-                    env::var("ALLOW_ORIGINS")
-                        .unwrap_or("http://localhost:3000".to_string())
-                        .split(',')
-                        .map(|s| s.parse().unwrap())
-                        .collect::<Vec<_>>(),
-                ),
-        )
 }
 
 /// ヘルスチェック
@@ -123,7 +101,7 @@ mod tests {
         body::Body,
         http::{Method, Request, StatusCode},
     };
-    use sqlx::{self, PgPool};
+    use sqlx::PgPool;
     use tower::ServiceExt;
 
     #[sqlx::test]

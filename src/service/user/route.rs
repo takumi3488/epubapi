@@ -136,7 +136,7 @@ mod tests {
         http::{header, Method, Request},
     };
     use serde_json::{json, to_string};
-    use sqlx::{self, PgPool};
+    use sqlx::PgPool;
     use tower::ServiceExt;
 
     use crate::{routes::routes::init_app, service::user::model::token_cookie_from_user_id};

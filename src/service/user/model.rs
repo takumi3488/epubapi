@@ -1,4 +1,4 @@
-use std::{env, result::Result};
+use std::env;
 
 use chrono::Duration;
 use cookie::Cookie;

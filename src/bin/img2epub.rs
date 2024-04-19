@@ -6,7 +6,6 @@ use std::{
     fs::{create_dir_all, remove_dir_all, File},
     io::{Read, Write},
     process::Command,
-    result::Result,
 };
 
 use aws_sdk_s3::primitives::ByteStream;
