@@ -1,11 +1,14 @@
+use std::env;
+
 use axum::{
     extract::{DefaultBodyLimit, Request},
-    http::StatusCode,
+    http::{StatusCode, header, Method},
     middleware::Next,
     response::Response,
     routing::{delete, get, patch, post, put},
     Router,
 };
+use tower_http::cors::CorsLayer;
 use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -89,6 +92,24 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
             delete(delete_tag_from_book),
         )
         .layer(axum::middleware::from_fn(access_log_on_request))
+        .layer(
+            CorsLayer::new()
+                .allow_credentials(true)
+                .allow_headers(vec![
+                    header::AUTHORIZATION,
+                    header::ACCEPT,
+                    header::CONTENT_TYPE,
+                    header::COOKIE,
+                ])
+                .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
+                .allow_origin(
+                    env::var("ALLOW_ORIGINS")
+                        .unwrap_or("http://localhost:3000".to_string())
+                        .split(',')
+                        .map(|s| s.parse().unwrap())
+                        .collect::<Vec<_>>(),
+                ),
+        )
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .with_state(db.clone())
 }
