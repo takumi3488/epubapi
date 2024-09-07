@@ -1,4 +1,4 @@
-use epubapi::routes::routes::ApiDoc;
+use epubapi::routes::ApiDoc;
 use utoipa::OpenApi;
 
 fn main() {
@@ -11,7 +11,7 @@ fn main() {
         .map(|(i, x)| format!("{}: {}", i + 1, x))
         .collect::<Vec<_>>()
         .join("\n");
-    if out != "" {
+    if !out.is_empty() {
         panic!("{}", out);
     }
 }

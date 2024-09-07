@@ -15,7 +15,7 @@
           "crate::service::book::route"
         ],
         "summary": "閲覧可能なbook一覧を取得する",
-        "description": "閲覧可能なbook一覧を取得する\npage: ページ番号\nkeyword: タイトル・著者名での検索キーワード",
+        "description": "page: ページ番号\nkeyword: タイトル・著者名での検索キーワード",
         "operationId": "get_books",
         "parameters": [
           {
@@ -185,7 +185,6 @@
           "crate::service::book::route"
         ],
         "summary": "bookを削除する",
-        "description": "bookを削除する",
         "operationId": "delete_book",
         "parameters": [
           {
@@ -255,7 +254,6 @@
           "crate::service::book::route"
         ],
         "summary": "bookを更新する",
-        "description": "bookを更新する",
         "operationId": "update_book",
         "parameters": [
           {
@@ -349,7 +347,6 @@
           "crate::service::book::route"
         ],
         "summary": "bookにtagを追加する",
-        "description": "bookにtagを追加する",
         "operationId": "add_tag_to_book",
         "parameters": [
           {
@@ -439,7 +436,6 @@
           "crate::service::book::route"
         ],
         "summary": "bookからtagを削除する",
-        "description": "bookからtagを削除する",
         "operationId": "delete_tag_from_book",
         "parameters": [
           {
@@ -805,7 +801,6 @@
           "crate::service::user::route"
         ],
         "summary": "ユーザー情報を取得",
-        "description": "ユーザー情報を取得",
         "operationId": "show_user",
         "responses": {
           "200": {

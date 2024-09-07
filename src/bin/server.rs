@@ -1,6 +1,6 @@
 use epubapi::{
-    db::db::{connect_db, insert_admin_user},
-    routes::routes::init_app,
+    db::{connect_db, insert_admin_user},
+    routes::init_app,
 };
 
 /// Main function

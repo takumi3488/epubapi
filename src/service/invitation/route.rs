@@ -25,7 +25,7 @@ pub async fn check_invitation(
 mod tests {
     use std::str::from_utf8;
 
-    use crate::routes::routes::init_app;
+    use crate::routes::init_app;
 
     use super::*;
     use axum::{
@@ -73,7 +73,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert_eq!(
             text,
             to_string(&json!(
@@ -101,7 +101,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert_eq!(
             text,
             to_string(&json!(
@@ -129,7 +129,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert_eq!(
             text,
             to_string(&json!(

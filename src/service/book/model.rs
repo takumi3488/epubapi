@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{types::chrono::NaiveDateTime, PgPool};
 use utoipa::{IntoParams, ToSchema};
 
-use crate::{minio::minio, service::user::model::is_admin};
+use crate::{minio, service::user::model::is_admin};
 
 #[derive(Serialize, Deserialize, Debug, sqlx::Type, ToSchema, PartialEq, Clone, Copy)]
 #[sqlx(type_name = "visibility", rename_all = "lowercase")]
@@ -182,11 +182,11 @@ pub async fn get_books(
                     publisher: book.publisher.clone(),
                     date: book.date.clone(),
                     cover_image: book.cover_image.clone(),
-                    visibility: book.visibility.clone(),
+                    visibility: book.visibility,
                     created_at: book.created_at,
                     tags: vec![],
                     epub_url: presigned.uri().to_string(),
-                    direction: book.direction.clone(),
+                    direction: book.direction,
                 }
             }
         })

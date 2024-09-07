@@ -16,7 +16,7 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
-    minio::minio,
+    minio,
     service::user::model::{get_user_id_by_api_key, user_id_from_header, UserError},
 };
 
@@ -89,7 +89,7 @@ pub async fn new_book(
     let client = minio::get_client(&endpoint).await;
     let epub_bucket = env::var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
     let id = Uuid::new_v4();
-    let key = format!("{}/{}.epub", user_id, id.to_string());
+    let key = format!("{}/{}.epub", user_id, id);
     let multipart_upload_res: CreateMultipartUploadOutput = client
         .create_multipart_upload()
         .bucket(&epub_bucket)
@@ -272,7 +272,7 @@ pub async fn get_cover_image(
     headers: HeaderMap,
     State(db): State<PgPool>,
 ) -> impl IntoResponse {
-    if None == user_id_from_header(&headers, &db).await {
+    if (user_id_from_header(&headers, &db).await).is_none() {
         return (
             StatusCode::UNAUTHORIZED,
             Json(UserError::Unauthorized(String::from("missing user id"))),
@@ -316,7 +316,7 @@ mod tests {
     use sqlx::PgPool;
     use tower::ServiceExt;
 
-    use crate::{routes::routes::init_app, service::user::model::token_cookie_from_user_id};
+    use crate::{routes::init_app, service::user::model::token_cookie_from_user_id};
 
     /// Book一覧取得のテスト
     #[sqlx::test(fixtures("users", "tags", "book_with_tags"))]
@@ -333,7 +333,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*&bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert!(text.contains(r#""id":"user_public_book_id""#));
         assert!(text.contains(r#""id":"user_private_book_id""#));
         assert!(text.contains(r#""id":"admin_public_book_id""#));
@@ -348,7 +348,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*&bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert!(text.contains(r#""id":"user_public_book_id""#));
         assert!(text.contains(r#""id":"user_private_book_id""#));
         assert!(!text.contains(r#""id":"admin_public_book_id""#));
@@ -362,7 +362,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*&bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert_eq!(text, r#"[]"#);
 
         // GET /books (with api key)
@@ -374,7 +374,7 @@ mod tests {
         let res = router.clone().oneshot(req).await.unwrap();
         assert_eq!(res.status(), 200);
         let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
-        let text = from_utf8(&*&bytes).unwrap();
+        let text = from_utf8(&bytes).unwrap();
         assert!(text.contains(r#""id":"user_public_book_id""#));
         assert!(text.contains(r#""id":"user_private_book_id""#));
         assert!(text.contains(r#""id":"admin_public_book_id""#));
@@ -393,10 +393,7 @@ mod tests {
         let res = server
             .post("/books")
             .multipart(multipart_form)
-            .add_header(
-                "X-Api-Key".parse().unwrap(),
-                "user_api_key".parse().unwrap(),
-            )
+            .add_header("X-Api-Key", "user_api_key")
             .await;
         assert_eq!(res.status_code(), 204);
     }

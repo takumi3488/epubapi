@@ -1,3 +1,5 @@
+use core::fmt;
+
 use chrono::{Duration, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -12,12 +14,12 @@ pub enum InvitationState {
     Used,
 }
 
-impl InvitationState {
-    pub fn to_string(&self) -> String {
+impl fmt::Display for InvitationState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            InvitationState::Unused => String::from("unused"),
-            InvitationState::Using => String::from("using"),
-            InvitationState::Used => String::from("used"),
+            Self::Unused => write!(f, "unused"),
+            Self::Using => write!(f, "using"),
+            Self::Used => write!(f, "used"),
         }
     }
 }

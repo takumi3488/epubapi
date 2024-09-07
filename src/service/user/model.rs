@@ -91,9 +91,7 @@ pub fn id_to_jwt(id: &str) -> String {
             .expect("JWT_SECRET is not set")
             .as_bytes(),
     );
-    let mut header = jsonwebtoken::Header::default();
-    header.typ = Some(String::from("JWT"));
-    header.alg = jsonwebtoken::Algorithm::HS256;
+    let header = jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256);
     let claim = Claims {
         id: id.to_string(),
         exp: (chrono::Utc::now() + Duration::days(30)).timestamp(),
@@ -172,10 +170,7 @@ pub async fn is_admin(db: &PgPool, user_id: &str) -> bool {
     .fetch_one(db)
     .await
     {
-        Ok(user) => match user.role {
-            UserRole::Admin => true,
-            _ => false,
-        },
+        Ok(user) => matches!(user.role, UserRole::Admin),
         Err(_) => false,
     }
 }
@@ -215,7 +210,7 @@ pub async fn create_user(
 
     // ID(英数字と-と_で2文字以上), パスワード(英数字と記号で8文字以上)の確認
     let id_regex = Regex::new(r#"^[a-zA-Z0-9_-]{2,40}$"#).unwrap();
-    if !id_regex.is_match(&id) {
+    if !id_regex.is_match(id) {
         return Err("IDは2文字以上で英数字,-,_のみを使用してください".to_string());
     }
     if password.chars().count() < 8 {
@@ -239,7 +234,7 @@ pub async fn create_user(
         UserRole::User as UserRole,
         Uuid::new_v4().to_string(),
     )
-    .execute(&mut **(&mut transaction))
+    .execute(&mut *transaction)
     .await
     {
         return Err(e.to_string());
@@ -255,7 +250,7 @@ pub async fn create_user(
         InvitationState::Used as InvitationState,
         invitation_code
     )
-    .execute(&mut **(&mut transaction))
+    .execute(&mut *transaction)
     .await
     {
         return Err(e.to_string());

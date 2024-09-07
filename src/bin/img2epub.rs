@@ -1,4 +1,4 @@
-use epubapi::minio::minio::get_client;
+use epubapi::minio::get_client;
 
 use std::{
     env::var,
@@ -119,7 +119,7 @@ async fn convert_to_epub(
     // .tar.gzを解凍する
     Command::new("tar")
         .arg("-xvf")
-        .arg(&name)
+        .arg(name)
         .current_dir(&work_dir)
         .spawn()
         .expect("Failed to execute command")

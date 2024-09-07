@@ -1,6 +1,6 @@
 use aws_sdk_s3::primitives::ByteStream;
 use epub::doc::EpubDoc;
-use epubapi::{db::db::connect_db, minio::minio::get_client, service::book::model::Direction};
+use epubapi::{db::connect_db, minio::get_client, service::book::model::Direction};
 use sqlx::query;
 use std::{
     env::var,
@@ -60,7 +60,7 @@ async fn main() {
             .iter()
             .filter(|&object| !book_keys.contains(&object.key().unwrap().to_string()))
             .filter(|&object| {
-                user_ids.contains(&object.key().unwrap().split("/").nth(0).unwrap().to_string())
+                user_ids.contains(&object.key().unwrap().split("/").next().unwrap().to_string())
             })
         {
             let key = object.key().unwrap();

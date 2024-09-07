@@ -139,7 +139,7 @@ mod tests {
     use sqlx::PgPool;
     use tower::ServiceExt;
 
-    use crate::{routes::routes::init_app, service::user::model::token_cookie_from_user_id};
+    use crate::{routes::init_app, service::user::model::token_cookie_from_user_id};
 
     #[sqlx::test(fixtures("users", "invitations"))]
     async fn test_new_user(pool: PgPool) {
