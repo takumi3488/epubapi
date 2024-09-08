@@ -5,3 +5,4 @@ for f in /images/test*.tar.gz; do
   mc cp $f minio/$IMAGES_BUCKET/minio_user_id/$(basename $f)
 done
 mc ls minio/$EPUB_BUCKET || mc mb minio/$EPUB_BUCKET
+mc ls minio/$OUT_IMAGES_BUCKET || mc mb minio/$OUT_IMAGES_BUCKET

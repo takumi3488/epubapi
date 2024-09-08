@@ -40,6 +40,14 @@ pub struct Book {
     pub created_at: NaiveDateTime,
 }
 
+#[derive(Serialize, Debug, sqlx::Type, ToSchema, Deserialize)]
+#[sqlx(type_name = "layout", rename_all = "lowercase")]
+pub enum BookLayout {
+    Reflowable,
+    #[sqlx(rename = "pre-paginated")]
+    PrePaginated,
+}
+
 #[derive(ToSchema, Serialize, Deserialize)]
 pub struct BookResponse {
     pub id: String,
@@ -57,6 +65,14 @@ pub struct BookResponse {
     pub created_at: NaiveDateTime,
     pub tags: Vec<String>,
     pub epub_url: String,
+}
+
+#[derive(ToSchema, Serialize, Deserialize, Debug)]
+pub struct BookUpdateImagesResponse {
+    pub key: String,
+    #[schema(inline)]
+    pub layout: Option<BookLayout>,
+    pub images: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, ToSchema, IntoParams, Clone)]
@@ -89,6 +105,11 @@ pub struct UpdateBookRequest {
 
 #[derive(ToSchema, Serialize, Deserialize)]
 pub struct DeleteBookRequest {
+    pub key: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct BookKey {
     pub key: String,
 }
 

@@ -4,6 +4,7 @@ env:
   DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/epubapi"
   IMAGES_BUCKET: "images-bucket"
   EPUB_BUCKET: "epub-bucket"
+  OUT_IMAGES_BUCKET: "out-images-bucket"
   S3_ENDPOINT: "http://localhost:9000"
   PUBLIC_S3_ENDPOINT: "http://localhost:9000"
   ADMIN_ID: "test_admin_id"
@@ -66,4 +67,9 @@ tasks:
       - task: rebuild
       - cargo run --bin img2epub
       - cargo run --bin get_metadata
+      - cargo run --bin epub2img
       - task: test
+
+  tmp:
+    cmds:
+      - cargo run --bin epub2img

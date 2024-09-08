@@ -2,7 +2,7 @@ using Plots
 using Metal
 gr(fmt=:png)
 
-N = 61
+N = 3
 
 function rmall(; ball=false)
     for i in 1:N

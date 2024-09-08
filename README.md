@@ -9,6 +9,7 @@
 - `server`: Webサーバー
 - `gen_metadata`: 
 - `img2epub`: 
+- `epub2img`:
 
 ## 環境変数
 

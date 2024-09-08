@@ -29,6 +29,12 @@ RUN apk add --no-cache ca-certificates tar zip
 RUN update-ca-certificates
 ENTRYPOINT ["/img2epub"]
 
+FROM alpine AS epub2img
+COPY --from=builder /epub2img /epub2img
+RUN apk add --no-cache ca-certificates tar unzip
+RUN update-ca-certificates
+ENTRYPOINT ["/epub2img"]
+
 FROM scratch AS server
 WORKDIR /app
 COPY --from=builder /server /server

@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE books SET layout = $1 WHERE key = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "layout",
+            "kind": {
+              "Enum": [
+                "reflowable",
+                "pre-paginated"
+              ]
+            }
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "55d4a6df8397cf08a4f34e0d1f7e0ab92dd1ba327489af6ea7933cddc4be61e9"
+}
