@@ -23,26 +23,68 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           target/
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        key: fmt-${{ hashFiles('**/Cargo.lock') }}
 
     - name: Format with Rustfmt
       run: cargo fmt --all --check
 
-  clippy:
+  lint:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: lint-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Lint with Clippy
       run: cargo clippy --all-targets --all-features
 
   build-test:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: build-test-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Build test
       run: cargo build --release --verbose
       
   e2e:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: e2e-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Install Task
       uses: arduino/setup-task@v2
       with:
