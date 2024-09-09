@@ -32,6 +32,7 @@ tasks:
     cmds:
       - curl -fsSL https://install.julialang.org | sh -s -- -y
       - $HOME/.juliaup/bin/julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
+      - echo 'export PATH="$HOME/.juliaup/bin:$PATH"' >> $HOME/.zshrc
 
   install:docker-compose:
     cmds:
