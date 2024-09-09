@@ -22,7 +22,7 @@ tasks:
   install:docker:
     cmds:
       - brew upgrade
-      - brew install docker docker-compose
+      - brew install docker docker-compose colima
       - mkdir -p $HOME/.docker/cli-plugins
       - ln -sfn /usr/local/opt/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
       - curl -L -o $(brew --prefix lima)/bin/limactl "https://github.com/mikekazakov/lima-nohvf/raw/master/limactl"
