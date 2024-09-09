@@ -8,12 +8,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
+  fmt:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+
     - name: Cache cargo registry
       uses: actions/cache@v4
       with:
@@ -28,12 +28,21 @@ jobs:
     - name: Format with Rustfmt
       run: cargo fmt --all --check
 
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
     - name: Lint with Clippy
       run: cargo clippy --all-targets --all-features
 
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
     - name: Build test
       run: cargo build --release --verbose
       
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
     - name: Install Task
       uses: arduino/setup-task@v2
       with:
