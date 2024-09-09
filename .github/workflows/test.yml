@@ -94,5 +94,10 @@ jobs:
     - name: Install sqlx-cli
       run: cargo install sqlx-cli --no-default-features --features native-tls,postgres
 
+    - name: Install Julia
+      uses: julia-actions/setup-julia@v2
+      with:
+        version: "1"
+
     - name: E2E test
       run: task all

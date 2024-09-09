@@ -35,9 +35,7 @@ tasks:
   rebuild:
     cmds:
       - docker compose down
-      - |
-        [ -z test_assets/images/test1.tar.gz ] && \
-        sh -c "cd test_assets && julia gen_test_data.jl" || true
+      - sh -c "cd test_assets && julia gen_test_data.jl"
       - task: up
 
   up:
