@@ -19,10 +19,12 @@ tasks:
     cmds:
       - task: all
 
-  install:lima:
+  install:docker:
     cmds:
-      - brew install lima
-      - limactl start --name=default template://docker
+      - brew install docker docker-compose
+      - mkdir -p $HOME/.docker/cli-plugins
+      - ln -sfn /usr/local/opt/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
+      - colima start
 
   install:sqlx-cli:
     cmds:
@@ -34,15 +36,6 @@ tasks:
       - $HOME/.juliaup/bin/julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
       - echo 'export PATH="$HOME/.juliaup/bin:$PATH"' >> $HOME/.zshrc
 
-  install:docker-compose:
-    cmds:
-      - curl -L "https://download.docker.com/mac/static/stable/aarch64/docker-27.2.0.tgz" -o docker.tgz
-      - tar -xvzf docker.tgz
-      - mv docker/docker ${HOME}/.local/bin
-      - mkdir -p ${HOME}/.docker/cli-plugins
-      - curl -SL "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-darwin-aarch64" -o ${HOME}/.docker/cli-plugins/docker-compose
-      - chmod +x ${HOME}/.docker/cli-plugins/docker-compose
-
   ci:prepare:
     cmds:
       - mkdir -p ${HOME}/.local/bin
@@ -51,10 +44,9 @@ tasks:
     env:
       DOCKER_HOST: unix://$HOME/.lima/default/sock/docker.sock
     deps:
-      - install:lima
+      - install:docker
       - install:sqlx-cli
       - install:julia
-      - install:docker-compose
     cmds:
       - zsh -c ". $HOME/.zshrc && cd test_assets && julia gen_test_data.jl"
       - docker compose down
