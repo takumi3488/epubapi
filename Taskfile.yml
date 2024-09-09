@@ -55,7 +55,17 @@ tasks:
       - install:julia
       - install:docker-compose
     cmds:
-      - task: all
+      - zsh -c ". $HOME/.zshrc && cd test_assets && julia gen_test_data.jl"
+      - docker compose down
+      - docker compose up --build -d minio postgres
+      - docker compose up --build create_bucket
+      - cargo build
+      - cargo sqlx prepare --database-url ${DATABASE_URL}
+      - cargo run --bin gen_schema > openapi.json
+      - cargo run --bin img2epub
+      - cargo run --bin get_metadata
+      - cargo run --bin epub2img
+      - cargo test
 
   serve:
     cmds:
