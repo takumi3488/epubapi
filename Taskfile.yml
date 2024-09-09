@@ -19,6 +19,11 @@ tasks:
     cmds:
       - task: all
 
+  install:lima:
+    cmds:
+      - brew install lima
+      - limactl start --name=default template://docker
+
   install:sqlx-cli:
     cmds:
       - cargo install sqlx-cli --no-default-features --features native-tls,postgres
@@ -42,6 +47,8 @@ tasks:
       - mkdir -p ${HOME}/.local/bin
 
   ci:
+    env:
+      DOCKER_HOST: unix://$HOME/.lima/default/sock/docker.sock
     deps:
       - install:sqlx-cli
       - install:julia
