@@ -24,7 +24,7 @@ tasks:
       - brew upgrade
       - brew install docker docker-compose colima
       - mkdir -p $HOME/.docker/cli-plugins
-      - ln -sfn /usr/local/opt/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
+      - ln -sfn /opt/homebrew/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
       - sudo curl -L -o $(brew --prefix lima)/bin/limactl "https://github.com/mikekazakov/lima-nohvf/raw/master/limactl"
       - sudo chmod +x $(brew --prefix lima)/bin/limactl
       - colima start --network-address --arch arm64 --vm-type qemu
