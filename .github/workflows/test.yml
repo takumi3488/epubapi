@@ -92,4 +92,5 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: E2E test
+      shell: zsh {0}
       run: task ci:prepare ci
