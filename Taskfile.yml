@@ -25,7 +25,9 @@ tasks:
   
   install:julia:
     cmds:
-      - curl -fsSL https://install.julialang.org | sh -- -y
+      - curl https://julialang-s3.julialang.org/bin/mac/aarch64/1.10/julia-1.10.5-macaarch64.tar.gz -o julia.tar.gz
+      - tar -xvzf julia.tar.gz
+      - mv julia-1.10.5/bin/julia /home/runner/.local/bin/julia
       - julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
 
   install:docker-compose:
