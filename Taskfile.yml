@@ -19,6 +19,32 @@ tasks:
     cmds:
       - task: all
 
+  install:sqlx-cli:
+    cmds:
+      - cargo install sqlx-cli --no-default-features --features native-tls,postgres
+  
+  install:julia:
+    cmds:
+      - curl -fsSL https://install.julialang.org | sh
+      - julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
+
+  install:docker-compose:
+    cmds:
+      - curl -L "https://download.docker.com/mac/static/stable/aarch64/docker-27.2.0.tgz" -o docker.tgz
+      - tar -xvzf docker.tgz
+      - mv docker/docker /home/runner/.local/bin
+      - mkdir -p /home/runner/.docker/cli-plugins
+      - curl -SL "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-darwin-aarch64" -o /home/runner/.docker/cli-plugins/docker-compose
+      - chmod +x /home/runner/.docker/cli-plugins/docker-compose
+
+  ci:
+    deps:
+      - install:sqlx-cli
+      - install:julia
+      - install:docker-compose
+    cmds:
+      - task: all
+
   serve:
     cmds:
       - task: up

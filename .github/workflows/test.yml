@@ -91,19 +91,5 @@ jobs:
         version: 3.x
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Install sqlx-cli
-      run: cargo install sqlx-cli --no-default-features --features native-tls,postgres
-
-    - name: Install Julia
-      uses: julia-actions/setup-julia@v2
-      with:
-        version: "1"
-
-    - name: Install Julia dependencies
-      run: julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: E2E test
-      run: task all
+      run: task ci
