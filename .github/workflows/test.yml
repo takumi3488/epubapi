@@ -33,12 +33,12 @@ jobs:
 
     - name: Build test
       run: cargo build --release --verbose
+      
+    - name: Install Task
+      uses: arduino/setup-task@v2
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Docker compose up
-      run: docker compose up --build -d minio postgres
-
-    - name: Create bucket in minio for testing
-      run: docker compose up --build create_bucket
-
-    - name: Test
-      run: cargo test --verbose
+    - name: E2E test
+      run: task all
