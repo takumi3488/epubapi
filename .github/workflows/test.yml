@@ -69,7 +69,7 @@ jobs:
       run: cargo build --release --verbose
       
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -98,6 +98,9 @@ jobs:
       uses: julia-actions/setup-julia@v2
       with:
         version: "1"
+
+    - name: Install Julia dependencies
+      run: julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
 
     - name: E2E test
       run: task all
