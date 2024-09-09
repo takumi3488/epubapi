@@ -2,7 +2,7 @@ use aws_sdk_s3::primitives::ByteStream;
 use epubapi::{
     db::connect_db,
     minio::get_client,
-    service::book::model::{BookKey, BookLayout, BookUpdateImagesResponse},
+    service::book::model::{get_books_without_layout, update_book_images, BookLayout},
 };
 use std::{
     env::var,
@@ -26,22 +26,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let db = connect_db().await;
 
     // 未処理のbookのkeyを取得する
-    let keys = sqlx::query_as!(BookKey, r#"SELECT key FROM books WHERE layout isnull"#)
-        .fetch_all(&db)
-        .await?;
+    let books = get_books_without_layout(&db).await?;
 
     // Minioクライアントの初期化
     let minio_client = get_client(&endpoint).await;
 
-    for key in keys {
+    for book in books {
         // epubファイルをダウンロードする
         let mut epub_stream = minio_client
             .get_object()
             .bucket(epub_bucket)
-            .key(&key.key)
+            .key(&book.key)
             .send()
             .await?;
-        let file_path = format!("/tmp/{}", key.key);
+        let file_path = format!("/tmp/{}", book.key);
         println!("file_path: {}", file_path);
         create_dir_all(Path::new(&file_path).parent().unwrap())
             .await
@@ -52,7 +50,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // epubを展開
-        let work_dir = format!("/tmp/{}", key.key.replace(".epub", ""));
+        let work_dir = format!("/tmp/{}", book.key.replace(".epub", ""));
         create_dir_all(&work_dir)
             .await
             .expect("Failed to create dir to extract epub");
@@ -87,14 +85,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .to_string();
         if &layout == "reflowable" {
             // DBのみ更新して終了
-            sqlx::query!(
-                r#"UPDATE books SET layout = $1 WHERE key = $2"#,
-                BookLayout::Reflowable as BookLayout,
-                key.key
-            )
-            .execute(&db)
-            .await?;
-            println!("skip reflowable book: {}", key.key);
+            update_book_images(&book.id, BookLayout::Reflowable, Vec::new(), &db).await?;
+            println!("skip reflowable book: {}", book.key);
             continue;
         } else if &layout != "pre-paginated" {
             panic!("rendition:layout が不正です");
@@ -158,14 +150,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // DBを更新
-        let response = sqlx::query_as!(
-            BookUpdateImagesResponse,
-            r#"UPDATE books SET layout = $1, images = $2 WHERE key = $3 RETURNING key, layout as "layout: BookLayout", images"#,
-            BookLayout::PrePaginated as BookLayout,
-            &keys,
-            key.key
-        ).fetch_one(&db).await?;
-        println!("{:?}", response);
+        update_book_images(&book.id, BookLayout::PrePaginated, keys, &db).await?;
     }
 
     Ok(())

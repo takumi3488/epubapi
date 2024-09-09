@@ -21,14 +21,16 @@ use crate::{
 };
 
 /// 閲覧可能なbook一覧を取得する
+///
 /// page: ページ番号
+///
 /// keyword: タイトル・著者名での検索キーワード
 #[utoipa::path(
     get,
     path = "/books",
     params(model::BookQuery),
     responses(
-        (status = 200, description = "OK", body = inline(Vec<model::BookResponse>)),
+        (status = 200, description = "OK", body = inline(Vec<model::GetBooksResponse>)),
         (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
     )
 )]
@@ -54,6 +56,41 @@ pub async fn get_books(
     };
 
     (StatusCode::OK, Json(books)).into_response()
+}
+
+/// bookの詳細を取得する
+///
+/// book_id: bookのID
+#[utoipa::path(
+    get,
+    path = "/books/{book_id}",
+    responses(
+        (status = 200, description = "OK", body = inline(model::GetBookDetailsResponse)),
+        (status = 401, description = "Unauthorized", body = inline(UserError), example = json!(UserError::Unauthorized(String::from("missing user id")))),
+    )
+)]
+pub async fn get_book(
+    Path(book_id): Path<String>,
+    headers: HeaderMap,
+    State(db): State<PgPool>,
+) -> impl IntoResponse {
+    let user_id = match user_id_from_header(&headers, &db).await {
+        Some(id) => id,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(UserError::Unauthorized(String::from("missing user id"))),
+            )
+                .into_response()
+        }
+    };
+
+    let book = match model::get_book_details(&book_id, &user_id, &db).await {
+        Ok(book) => book,
+        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR).into_response(),
+    };
+
+    (StatusCode::OK, Json(book)).into_response()
 }
 
 /// bookを新規作成する
@@ -303,8 +340,9 @@ pub async fn get_cover_image(
 
 #[cfg(test)]
 mod tests {
-    use std::str::from_utf8;
+    use std::{env, str::from_utf8};
 
+    use aws_sdk_s3::primitives::ByteStream;
     use axum::{
         body::{to_bytes, Body},
         http::{header, Request},
@@ -314,9 +352,32 @@ mod tests {
         TestServer,
     };
     use sqlx::PgPool;
+    use tokio::sync::OnceCell;
     use tower::ServiceExt;
 
-    use crate::{routes::init_app, service::user::model::token_cookie_from_user_id};
+    use crate::{minio, routes::init_app, service::user::model::token_cookie_from_user_id};
+
+    static INIT_IMAGES: OnceCell<Vec<String>> = OnceCell::const_new();
+
+    /// テスト用のオブジェクトをMinioにアップロードする
+    async fn put_images_to_minio() -> Vec<String> {
+        let endpoint = env::var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
+        let client = minio::get_client(&endpoint).await;
+        let out_images_bucket =
+            env::var("OUT_IMAGES_BUCKET").expect("OUT_IMAGES_BUCKET is not set");
+        let images = vec!["image1.jpg", "image2.jpg"];
+        for &image in &images {
+            let body = ByteStream::from_static(&[]);
+            let _ = client
+                .put_object()
+                .bucket(&out_images_bucket)
+                .key(image)
+                .body(body)
+                .send()
+                .await;
+        }
+        images.iter().map(|x| x.to_string()).collect()
+    }
 
     /// Book一覧取得のテスト
     #[sqlx::test(fixtures("users", "tags", "book_with_tags"))]
@@ -379,6 +440,39 @@ mod tests {
         assert!(text.contains(r#""id":"user_private_book_id""#));
         assert!(text.contains(r#""id":"admin_public_book_id""#));
         assert!(!text.contains(r#""id":"admin_private_book_id""#));
+    }
+
+    /// Book詳細取得のテスト
+    #[sqlx::test(fixtures("users", "tags", "book_with_tags"))]
+    async fn test_get_book_details(pool: PgPool) {
+        let images = INIT_IMAGES.get_or_init(put_images_to_minio).await;
+
+        let router = init_app(&pool);
+        let user_cookie = token_cookie_from_user_id("user_id");
+
+        // GET /books/{book_id}
+        let req = Request::builder()
+            .uri("/books/user_public_book_id")
+            .header(header::COOKIE, &user_cookie)
+            .body(Body::empty())
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 200);
+        let bytes = to_bytes(res.into_body(), usize::MAX).await.unwrap();
+        let text = from_utf8(&bytes).unwrap();
+        assert!(text.contains(r#""id":"user_public_book_id""#));
+        assert!(text.contains(r#""name":"user_public_book_name""#));
+        assert!(text.contains(&images[0]));
+        assert!(text.contains(&images[1]));
+
+        // GET /books/{book_id} to other user's book
+        let req = Request::builder()
+            .uri("/books/admin_private_book_id")
+            .header(header::COOKIE, &user_cookie)
+            .body(Body::empty())
+            .unwrap();
+        let res = router.clone().oneshot(req).await.unwrap();
+        assert_eq!(res.status(), 500);
     }
 
     /// Book新規作成のテスト

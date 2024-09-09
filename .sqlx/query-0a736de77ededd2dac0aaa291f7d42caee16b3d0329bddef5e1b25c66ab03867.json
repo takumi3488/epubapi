@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE books SET layout = $1 WHERE key = $2",
+  "query": "\n            UPDATE books\n            SET layout = $1, images = $2\n            WHERE id = $3\n        ",
   "describe": {
     "columns": [],
     "parameters": {
@@ -16,10 +16,11 @@
             }
           }
         },
+        "TextArray",
         "Text"
       ]
     },
     "nullable": []
   },
-  "hash": "55d4a6df8397cf08a4f34e0d1f7e0ab92dd1ba327489af6ea7933cddc4be61e9"
+  "hash": "0a736de77ededd2dac0aaa291f7d42caee16b3d0329bddef5e1b25c66ab03867"
 }

@@ -1,10 +1,15 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT key FROM books WHERE layout isnull",
+  "query": "SELECT id, key FROM books WHERE layout isnull",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
         "name": "key",
         "type_info": "Text"
       }
@@ -13,8 +18,9 @@
       "Left": []
     },
     "nullable": [
+      false,
       false
     ]
   },
-  "hash": "4b3b0dd4d0fab3ae160f7a8596a1cde28713cd02d626cfc422d7e822aec6f006"
+  "hash": "4c768c3ff5c9f2f1ae6f24f9a8486276b592673399caca3847af951158619599"
 }

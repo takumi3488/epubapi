@@ -38,9 +38,11 @@ pub struct Book {
     pub visibility: Visibility,
     pub direction: Direction,
     pub created_at: NaiveDateTime,
+    pub layout: Option<BookLayout>,
+    pub images: Vec<String>,
 }
 
-#[derive(Serialize, Debug, sqlx::Type, ToSchema, Deserialize)]
+#[derive(Serialize, Debug, sqlx::Type, ToSchema, Deserialize, Clone, Copy)]
 #[sqlx(type_name = "layout", rename_all = "lowercase")]
 pub enum BookLayout {
     Reflowable,
@@ -49,7 +51,23 @@ pub enum BookLayout {
 }
 
 #[derive(ToSchema, Serialize, Deserialize)]
-pub struct BookResponse {
+pub struct GetBooksResponse {
+    pub id: String,
+    pub owner_id: String,
+    pub name: String,
+    pub creator: String,
+    pub publisher: String,
+    pub date: String,
+    pub cover_image: String,
+    #[schema(inline)]
+    pub visibility: Visibility,
+    #[schema(value_type = String, format = Date)]
+    pub created_at: NaiveDateTime,
+    pub tags: Vec<String>,
+}
+
+#[derive(ToSchema, Serialize, Deserialize)]
+pub struct GetBookDetailsResponse {
     pub id: String,
     pub owner_id: String,
     pub name: String,
@@ -65,11 +83,6 @@ pub struct BookResponse {
     pub created_at: NaiveDateTime,
     pub tags: Vec<String>,
     pub epub_url: String,
-}
-
-#[derive(ToSchema, Serialize, Deserialize, Debug)]
-pub struct BookUpdateImagesResponse {
-    pub key: String,
     #[schema(inline)]
     pub layout: Option<BookLayout>,
     pub images: Vec<String>,
@@ -109,15 +122,17 @@ pub struct DeleteBookRequest {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct BookKey {
+pub struct BookIdAndKey {
+    pub id: String,
     pub key: String,
 }
 
+/// 本を検索して取得
 pub async fn get_books(
     user_id: &str,
     query: BookQuery,
     db: &PgPool,
-) -> Result<Vec<BookResponse>, sqlx::Error> {
+) -> Result<Vec<GetBooksResponse>, sqlx::Error> {
     // データベースから本の情報を取得
     let books = match sqlx::query_as!(
         Book,
@@ -133,7 +148,9 @@ pub async fn get_books(
                 b.cover_image as cover_image,
                 b.created_at as created_at,
                 b.visibility as "visibility: _",
-                b.direction as "direction: _"
+                b.direction as "direction: _",
+                b.layout as "layout: _",
+                b.images as images
             FROM books b
             LEFT JOIN book_tags bt
                 ON b.id = bt.book_id
@@ -176,47 +193,104 @@ pub async fn get_books(
         }
     };
 
+    let response = books
+        .iter()
+        .map(|book| GetBooksResponse {
+            id: book.id.clone(),
+            owner_id: book.owner_id.clone(),
+            name: book.name.clone(),
+            creator: book.creator.clone(),
+            publisher: book.publisher.clone(),
+            date: book.date.clone(),
+            cover_image: book.cover_image.clone(),
+            visibility: book.visibility,
+            created_at: book.created_at,
+            tags: vec![],
+        })
+        .collect::<Vec<_>>();
+
+    Ok(response)
+}
+
+/// 本の詳細を取得
+pub async fn get_book_details(
+    book_id: &str,
+    user_id: &str,
+    db: &PgPool,
+) -> Result<GetBookDetailsResponse, sqlx::Error> {
+    // データベースから本の情報を取得
+    let book = sqlx::query_as!(
+        Book,
+        r#"
+            SELECT
+                b.id as id,
+                b.key as key,
+                b.owner_id as owner_id,
+                b.name as name,
+                b.creator as creator,
+                b.publisher as publisher,
+                b.date as date,
+                b.cover_image as cover_image,
+                b.created_at as created_at,
+                b.visibility as "visibility: _",
+                b.direction as "direction: _",
+                b.layout as "layout: _",
+                b.images as images
+            FROM books b
+            WHERE b.id = $1
+        "#,
+        book_id
+    )
+    .fetch_one(db)
+    .await?;
+
+    // 権限があるか確認
+    if !is_available(&book, user_id, db).await {
+        return Err(sqlx::Error::RowNotFound);
+    }
+
     // MinIOから署名付きURLを取得してBookResponseを作成
     let endpoint = env::var("PUBLIC_S3_ENDPOINT").expect("PUBLIC_S3_ENDPOINT is not set");
     let minio_client = minio::get_client(&endpoint).await;
-    let presigning_tasks = books
+    let epub_bucket = env::var("EPUB_BUCKET").unwrap();
+    let presign_epub_task = minio_client
+        .get_object()
+        .bucket(&epub_bucket)
+        .key(book.key.clone())
+        .presigned(PresigningConfig::expires_in(Duration::from_secs(60 * 60 * 24 * 7)).unwrap());
+    let presign_images_task = book.images.iter().map(|image| {
+        minio_client
+            .get_object()
+            .bucket(&epub_bucket)
+            .key(image.clone())
+            .presigned(PresigningConfig::expires_in(Duration::from_secs(60 * 60 * 24 * 7)).unwrap())
+    });
+    let presigned_epub_url = presign_epub_task.await.unwrap().uri().to_string();
+    let presigned_image_urls = join_all(presign_images_task)
+        .await
         .iter()
-        .map(|book| {
-            let minio_client = minio_client.clone();
-            async move {
-                let epub_bucket = env::var("EPUB_BUCKET").unwrap();
-                let presigned = minio_client
-                    .get_object()
-                    .bucket(&epub_bucket)
-                    .key(book.key.clone())
-                    .presigned(
-                        PresigningConfig::expires_in(Duration::from_secs(60 * 60 * 24 * 7))
-                            .unwrap(),
-                    )
-                    .await
-                    .unwrap();
-                BookResponse {
-                    id: book.id.clone(),
-                    owner_id: book.owner_id.clone(),
-                    name: book.name.clone(),
-                    creator: book.creator.clone(),
-                    publisher: book.publisher.clone(),
-                    date: book.date.clone(),
-                    cover_image: book.cover_image.clone(),
-                    visibility: book.visibility,
-                    created_at: book.created_at,
-                    tags: vec![],
-                    epub_url: presigned.uri().to_string(),
-                    direction: book.direction,
-                }
-            }
-        })
-        .collect::<Vec<_>>();
-    let presigned_urls = join_all(presigning_tasks).await;
+        .map(|r| r.as_ref().unwrap().uri().to_string())
+        .collect::<Vec<String>>();
 
-    Ok(presigned_urls)
+    Ok(GetBookDetailsResponse {
+        id: book.id,
+        owner_id: book.owner_id,
+        name: book.name,
+        creator: book.creator,
+        publisher: book.publisher,
+        date: book.date,
+        cover_image: book.cover_image,
+        visibility: book.visibility,
+        direction: book.direction,
+        created_at: book.created_at,
+        tags: vec![],
+        epub_url: presigned_epub_url,
+        layout: book.layout,
+        images: presigned_image_urls,
+    })
 }
 
+/// タグを追加する
 pub async fn add_tag(
     book_id: &str,
     tag_name: &str,
@@ -251,6 +325,7 @@ pub async fn add_tag(
     Ok(())
 }
 
+/// タグを削除する
 pub async fn delete_tag_from_book(
     book_id: &str,
     tag_name: &str,
@@ -286,6 +361,7 @@ pub async fn delete_tag_from_book(
     Ok(())
 }
 
+/// 本を更新する
 pub async fn update_book(
     book_id: &str,
     user_id: &str,
@@ -321,6 +397,7 @@ pub async fn update_book(
     Ok(())
 }
 
+/// 本を削除する
 pub async fn delete_book(book_id: &str, user_id: &str, db: &PgPool) -> Result<(), sqlx::Error> {
     let book = sqlx::query!(
         r#"
@@ -354,6 +431,43 @@ pub async fn delete_book(book_id: &str, user_id: &str, db: &PgPool) -> Result<()
             DELETE FROM books
             WHERE id = $1
         "#,
+        book_id
+    )
+    .execute(db)
+    .await?;
+    Ok(())
+}
+
+/// Layoutの登録がない本を取得する
+///
+/// エンドユーザーには公開しないため、認証は不要
+pub async fn get_books_without_layout(db: &PgPool) -> Result<Vec<BookIdAndKey>, sqlx::Error> {
+    let keys = sqlx::query_as!(
+        BookIdAndKey,
+        r#"SELECT id, key FROM books WHERE layout isnull"#
+    )
+    .fetch_all(db)
+    .await?;
+    Ok(keys)
+}
+
+/// 本の画像を更新する
+///
+/// エンドユーザーには公開しないため、認証は不要
+pub async fn update_book_images(
+    book_id: &str,
+    layout: BookLayout,
+    images: Vec<String>,
+    db: &PgPool,
+) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+            UPDATE books
+            SET layout = $1, images = $2
+            WHERE id = $3
+        "#,
+        layout as BookLayout,
+        &images,
         book_id
     )
     .execute(db)
