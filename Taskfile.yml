@@ -39,6 +39,10 @@ tasks:
       - curl -SL "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-darwin-aarch64" -o /home/runner/.docker/cli-plugins/docker-compose
       - chmod +x /home/runner/.docker/cli-plugins/docker-compose
 
+  ci:prepare:
+    cmds:
+      - mkdir -p /home/runner/.local/bin
+
   ci:
     deps:
       - install:sqlx-cli
