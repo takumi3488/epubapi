@@ -46,11 +46,10 @@ tasks:
   ci:
     env:
       DOCKER_HOST: unix://$HOME/.lima/default/sock/docker.sock
-    deps:
-      - install:docker
-      - install:sqlx-cli
-      - install:julia
     cmds:
+      - task: install:docker
+      - task: install:sqlx-cli
+      - task: install:julia
       - zsh -c ". $HOME/.zshrc && cd test_assets && julia gen_test_data.jl"
       - docker compose down
       - docker compose up --build -d minio postgres
