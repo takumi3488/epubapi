@@ -64,8 +64,8 @@ tasks:
 
   rebuild:
     cmds:
-      - docker compose down
       - sh -c "cd test_assets && julia gen_test_data.jl"
+      - docker compose down
       - task: up
 
   up:
