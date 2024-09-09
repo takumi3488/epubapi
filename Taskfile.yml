@@ -51,6 +51,7 @@ tasks:
     env:
       DOCKER_HOST: unix://$HOME/.lima/default/sock/docker.sock
     deps:
+      - install:lima
       - install:sqlx-cli
       - install:julia
       - install:docker-compose
