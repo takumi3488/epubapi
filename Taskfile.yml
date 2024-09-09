@@ -21,10 +21,13 @@ tasks:
 
   install:docker:
     cmds:
-      - brew install docker docker-compose colima
+      - brew update
+      - brew install docker docker-compose
       - mkdir -p $HOME/.docker/cli-plugins
       - ln -sfn /usr/local/opt/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
-      - colima start
+      - sudo curl -L -o $(brew --prefix lima)/bin/limactl https://github.com/mikekazakov/lima-nohvf/raw/master/limactl
+      - sudo chmod +x $(brew --prefix lima)/bin/limactl
+      - colima start --network-address --arch arm64 --vm-type qemu
 
   install:sqlx-cli:
     cmds:
