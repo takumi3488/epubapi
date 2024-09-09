@@ -40,5 +40,8 @@ jobs:
         version: 3.x
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Install sqlx-cli
+      run: cargo install sqlx-cli --no-default-features --features native-tls,postgres
+
     - name: E2E test
       run: task all
