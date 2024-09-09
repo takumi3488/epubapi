@@ -27,21 +27,21 @@ tasks:
     cmds:
       - curl https://julialang-s3.julialang.org/bin/mac/aarch64/1.10/julia-1.10.5-macaarch64.tar.gz -o julia.tar.gz
       - tar -xvzf julia.tar.gz
-      - mv julia-1.10.5/bin/julia /home/runner/.local/bin/julia
+      - mv julia-1.10.5/bin/julia ${HOME}/.local/bin/julia
       - julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
 
   install:docker-compose:
     cmds:
       - curl -L "https://download.docker.com/mac/static/stable/aarch64/docker-27.2.0.tgz" -o docker.tgz
       - tar -xvzf docker.tgz
-      - mv docker/docker /home/runner/.local/bin
-      - mkdir -p /home/runner/.docker/cli-plugins
-      - curl -SL "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-darwin-aarch64" -o /home/runner/.docker/cli-plugins/docker-compose
-      - chmod +x /home/runner/.docker/cli-plugins/docker-compose
+      - mv docker/docker ${HOME}/.local/bin
+      - mkdir -p ${HOME}/.docker/cli-plugins
+      - curl -SL "https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-darwin-aarch64" -o ${HOME}/.docker/cli-plugins/docker-compose
+      - chmod +x ${HOME}/.docker/cli-plugins/docker-compose
 
   ci:prepare:
     cmds:
-      - mkdir -p /home/runner/.local/bin
+      - mkdir -p ${HOME}/.local/bin
 
   ci:
     deps:
