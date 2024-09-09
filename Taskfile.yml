@@ -44,8 +44,6 @@ tasks:
       - mkdir -p ${HOME}/.local/bin
 
   ci:
-    env:
-      DOCKER_HOST: unix://$HOME/.lima/default/sock/docker.sock
     deps:
       - install:docker
       - install:sqlx-cli
