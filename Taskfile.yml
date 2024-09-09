@@ -25,7 +25,7 @@ tasks:
   
   install:julia:
     cmds:
-      - curl -fsSL https://install.julialang.org | sh
+      - curl -fsSL https://install.julialang.org | sh -- -y
       - julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
 
   install:docker-compose:
