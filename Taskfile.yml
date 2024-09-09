@@ -21,7 +21,7 @@ tasks:
 
   install:docker:
     cmds:
-      - brew install docker docker-compose
+      - brew install docker docker-compose colima
       - mkdir -p $HOME/.docker/cli-plugins
       - ln -sfn /usr/local/opt/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
       - colima start
