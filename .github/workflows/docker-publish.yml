@@ -71,6 +71,12 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/epubapi-img2epub
 
+      - name: Extract Docker metadata (epub2img)
+        id: meta-epub2img
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/epubapi-epub2img
+
       - name: Build and push Docker image (img2epub)
         id: build-and-push-img2epub
         uses: docker/build-push-action@v5

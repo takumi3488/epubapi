@@ -8,7 +8,9 @@ insert into
         publisher,
         "date",
         cover_image,
-        visibility
+        visibility,
+        layout,
+        images
     )
 values
     (
@@ -20,7 +22,9 @@ values
         'book_publisher',
         'book_date',
         'book_cover_image',
-        'public'
+        'public',
+        'pre-paginated',
+        '{"image1.jpg", "image2.jpg"}'
     ),
     (
         'user_private_book_id',
@@ -31,7 +35,9 @@ values
         'book_publisher',
         'book_date',
         'book_cover_image',
-        'private'
+        'private',
+        'pre-paginated',
+        '{"image1.jpg", "image2.jpg"}'
     ),
     (
         'admin_public_book_id',
@@ -42,7 +48,9 @@ values
         'book_publisher',
         'book_date',
         'book_cover_image',
-        'public'
+        'public',
+        'pre-paginated',
+        '{"image1.jpg", "image2.jpg"}'
     ),
     (
         'admin_private_book_id',
@@ -53,7 +61,9 @@ values
         'book_publisher',
         'book_date',
         'book_cover_image',
-        'private'
+        'private',
+        'pre-paginated',
+        '{"image1.jpg", "image2.jpg"}'
     ),(
         'test_book_id',
         'minio_user_id/test1.epub',
@@ -63,7 +73,9 @@ values
         'book_publisher',
         'book_date',
         'book_cover_image',
-        'public'
+        'public',
+        'pre-paginated',
+        '{"image1.jpg", "image2.jpg"}'
     );
 
 insert into

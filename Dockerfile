@@ -1,4 +1,4 @@
-FROM rust:1.77-bookworm AS chef 
+FROM rust:1.81-bookworm AS chef 
 RUN cargo install cargo-chef 
 WORKDIR /app
 
@@ -28,6 +28,12 @@ COPY --from=builder /img2epub /img2epub
 RUN apk add --no-cache ca-certificates tar zip
 RUN update-ca-certificates
 ENTRYPOINT ["/img2epub"]
+
+FROM alpine AS epub2img
+COPY --from=builder /epub2img /epub2img
+RUN apk add --no-cache ca-certificates tar unzip
+RUN update-ca-certificates
+ENTRYPOINT ["/epub2img"]
 
 FROM scratch AS server
 WORKDIR /app

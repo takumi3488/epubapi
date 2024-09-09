@@ -15,7 +15,7 @@
           "crate::service::book::route"
         ],
         "summary": "閲覧可能なbook一覧を取得する",
-        "description": "page: ページ番号\nkeyword: タイトル・著者名での検索キーワード",
+        "description": "page: ページ番号\n\nkeyword: タイトル・著者名での検索キーワード",
         "operationId": "get_books",
         "parameters": [
           {
@@ -69,10 +69,8 @@
                       "date",
                       "cover_image",
                       "visibility",
-                      "direction",
                       "created_at",
-                      "tags",
-                      "epub_url"
+                      "tags"
                     ],
                     "properties": {
                       "cover_image": {
@@ -86,16 +84,6 @@
                         "type": "string"
                       },
                       "date": {
-                        "type": "string"
-                      },
-                      "direction": {
-                        "type": "string",
-                        "enum": [
-                          "ltr",
-                          "rtl"
-                        ]
-                      },
-                      "epub_url": {
                         "type": "string"
                       },
                       "id": {
@@ -180,6 +168,166 @@
       }
     },
     "/books/{book_id}": {
+      "get": {
+        "tags": [
+          "crate::service::book::route"
+        ],
+        "summary": "bookの詳細を取得する",
+        "description": "book_id: bookのID",
+        "operationId": "get_book",
+        "parameters": [
+          {
+            "name": "book_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "owner_id",
+                    "name",
+                    "creator",
+                    "publisher",
+                    "date",
+                    "cover_image",
+                    "visibility",
+                    "direction",
+                    "created_at",
+                    "tags",
+                    "epub_url",
+                    "images"
+                  ],
+                  "properties": {
+                    "cover_image": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date"
+                    },
+                    "creator": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "ltr",
+                        "rtl"
+                      ]
+                    },
+                    "epub_url": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "images": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "layout": {
+                      "allOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "Reflowable",
+                            "PrePaginated"
+                          ]
+                        }
+                      ],
+                      "nullable": true
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "owner_id": {
+                      "type": "string"
+                    },
+                    "publisher": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "public",
+                        "private"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "unauthorized"
+                      ],
+                      "properties": {
+                        "unauthorized": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid id or password"
+                      ],
+                      "properties": {
+                        "invalid id or password": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "invalid invitation code"
+                      ],
+                      "properties": {
+                        "invalid invitation code": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "example": {
+                  "unauthorized": "missing user id"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "crate::service::book::route"
@@ -1007,73 +1155,6 @@
           }
         }
       },
-      "BookResponse": {
-        "type": "object",
-        "required": [
-          "id",
-          "owner_id",
-          "name",
-          "creator",
-          "publisher",
-          "date",
-          "cover_image",
-          "visibility",
-          "direction",
-          "created_at",
-          "tags",
-          "epub_url"
-        ],
-        "properties": {
-          "cover_image": {
-            "type": "string"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date"
-          },
-          "creator": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string"
-          },
-          "direction": {
-            "type": "string",
-            "enum": [
-              "ltr",
-              "rtl"
-            ]
-          },
-          "epub_url": {
-            "type": "string"
-          },
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "owner_id": {
-            "type": "string"
-          },
-          "publisher": {
-            "type": "string"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "visibility": {
-            "type": "string",
-            "enum": [
-              "public",
-              "private"
-            ]
-          }
-        }
-      },
       "CheckInvitationRequest": {
         "type": "object",
         "description": "`POST /check_invitation` のリクエストボディ",
@@ -1126,6 +1207,147 @@
           "ltr",
           "rtl"
         ]
+      },
+      "GetBookDetailsResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "owner_id",
+          "name",
+          "creator",
+          "publisher",
+          "date",
+          "cover_image",
+          "visibility",
+          "direction",
+          "created_at",
+          "tags",
+          "epub_url",
+          "images"
+        ],
+        "properties": {
+          "cover_image": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "creator": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "ltr",
+              "rtl"
+            ]
+          },
+          "epub_url": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "layout": {
+            "allOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "Reflowable",
+                  "PrePaginated"
+                ]
+              }
+            ],
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          }
+        }
+      },
+      "GetBooksResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "owner_id",
+          "name",
+          "creator",
+          "publisher",
+          "date",
+          "cover_image",
+          "visibility",
+          "created_at",
+          "tags"
+        ],
+        "properties": {
+          "cover_image": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date"
+          },
+          "creator": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_id": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "private"
+            ]
+          }
+        }
       },
       "LoginRequest": {
         "type": "object",
