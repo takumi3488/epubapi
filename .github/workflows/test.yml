@@ -83,6 +83,9 @@ jobs:
     - name: Install Julia
       uses: julia-actions/setup-julia@v2
 
+    - name: Install Julia Packages
+      run: julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
