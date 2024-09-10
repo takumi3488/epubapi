@@ -22,30 +22,15 @@ services:
       minio:
         condition: service_healthy
   
-  img2epub:
+  converter:
     build:
       context: .
-      target: img2epub
-    environment:
-      S3_ENDPOINT: "http://minio:9000"
-      IMAGES_BUCKET: "images-bucket"
-      EPUB_BUCKET: "epub-bucket"
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: admin
-      AWS_SECRET_ACCESS_KEY: minio123
-    volumes:
-      - ./test_assets:/test_assets
-    depends_on:
-      minio:
-        condition: service_healthy
-
-  get_metadata:
-    build:
-      context: .
-      target: get_metadata
+      target: converter
     environment:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/epubapi"
       S3_ENDPOINT: "http://minio:9000"
+      IMAGES_BUCKET: "images-bucket"
+      OUT_IMAGES_BUCKET: "out-images-bucket"
       EPUB_BUCKET: "epub-bucket"
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: admin
@@ -57,6 +42,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      create_bucket:
+        condition: service_completed_successfully
 
   postgres:
     image: postgres:latest
