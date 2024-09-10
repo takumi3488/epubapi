@@ -6,3 +6,6 @@ for f in /images/test*.tar.gz; do
 done
 mc ls minio/$EPUB_BUCKET || mc mb minio/$EPUB_BUCKET
 mc ls minio/$OUT_IMAGES_BUCKET || mc mb minio/$OUT_IMAGES_BUCKET
+for f in /epubs/test*.epub; do
+  mc cp $f minio/$EPUB_BUCKET/minio_user_id/$(basename $f)
+done

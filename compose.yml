@@ -81,6 +81,7 @@ services:
     volumes:
       - ./test_assets/create_bucket.sh:/create_bucket.sh
       - ./test_assets/images:/images
+      - ./test_assets/epubs:/epubs
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: minio123
