@@ -84,5 +84,4 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: E2E test
-      shell: zsh {0}
       run: task ci
