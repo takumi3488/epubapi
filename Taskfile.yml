@@ -39,6 +39,10 @@ tasks:
       - $HOME/.juliaup/bin/julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
       - echo 'export PATH="$HOME/.juliaup/bin:$PATH"' >> $HOME/.zshrc
 
+  install:cavif:
+    cmds:
+      - cargo install cavif
+
   ci:prepare:
     cmds:
       - mkdir -p ${HOME}/.local/bin
@@ -48,6 +52,7 @@ tasks:
       - install:docker
       - install:sqlx-cli
       - install:julia
+      - install:cavif
     cmds:
       - zsh -c ". $HOME/.zshrc && cd test_assets && julia gen_test_data.jl"
       - docker-compose down
@@ -101,6 +106,12 @@ tasks:
       - task: sqlx
       - cargo check
       - task: schema
+
+  all:container:
+    cmds:
+      - task: rebuild
+      - docker compose up --build converter
+      - task: test
 
   all:
     cmds:

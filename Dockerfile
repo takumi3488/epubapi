@@ -9,10 +9,11 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates musl-tools
 RUN update-ca-certificates
+RUN rustup target add "$(uname -m)"-unknown-linux-musl
+RUN cargo install cavif --target "$(uname -m)"-unknown-linux-musl
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
-RUN rustup target add "$(uname -m)"-unknown-linux-musl
 RUN cargo build --bin get_metadata --bin img2epub --bin epub2img --bin server --release --target "$(uname -m)"-unknown-linux-musl
 RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/get_metadata -o /get_metadata
 RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/img2epub -o /img2epub
@@ -23,6 +24,7 @@ FROM alpine AS converter
 COPY --from=builder /get_metadata /get_metadata
 COPY --from=builder /img2epub /img2epub
 COPY --from=builder /epub2img /epub2img
+COPY --from=builder /usr/local/cargo/bin/cavif /usr/local/bin/cavif
 COPY ./convert.sh /convert.sh
 RUN apk add --no-cache ca-certificates curl tar zip unzip
 RUN update-ca-certificates

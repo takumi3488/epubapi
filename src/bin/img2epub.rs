@@ -15,6 +15,7 @@ use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    println!("epub2img start");
     // 環境変数の読み込み
     let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let images_bucket: &str = &var("IMAGES_BUCKET").expect("IMAGES_BUCKET is not set");

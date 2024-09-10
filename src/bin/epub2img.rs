@@ -16,6 +16,8 @@ use tokio::fs::create_dir_all;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    println!("epub2img start");
+
     // 環境変数の読み込み
     let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let epub_bucket: &str = &var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
@@ -32,6 +34,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let minio_client = get_client(&endpoint).await;
 
     for book in books {
+        println!("book: {}", book.key);
+
         // epubファイルをダウンロードする
         let mut epub_stream = minio_client
             .get_object()
@@ -129,6 +133,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
             })
             .collect::<Vec<_>>();
 
+        // 画像ファイルをavifに変換
+        let support_extensions = ["jpg", "jpeg", "png"];
+        let image_paths = image_paths.iter().map(|image_path| {
+            if support_extensions.contains(&image_path.extension().unwrap().to_str().unwrap()) {
+                let avif_path = image_path.with_extension("avif");
+                Command::new("cavif")
+                    .arg(image_path.to_str().unwrap())
+                    .arg("-o")
+                    .arg(avif_path.to_str().unwrap())
+                    .output()
+                    .expect("Failed to convert image to avif");
+                avif_path
+            } else {
+                image_path.clone()
+            }
+        });
+
         // 画像ファイルをMinIOにアップロード
         let mut keys = Vec::new();
         for image_path in image_paths {
@@ -137,6 +158,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 uuid::Uuid::new_v4(),
                 image_path.extension().unwrap().to_str().unwrap()
             );
+            println!("uploading image: {} -> {}", image_path.display(), key);
             let body = ByteStream::from_path(&image_path).await.unwrap();
             minio_client
                 .put_object()
