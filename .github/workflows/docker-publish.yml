@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -37,7 +37,7 @@ jobs:
 
       - name: Build and push Docker image (server)
         id: build-and-push-server
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: server
@@ -55,7 +55,7 @@ jobs:
 
       - name: Build and push Docker image (converter)
         id: build-and-push-converter
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: converter
