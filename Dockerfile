@@ -13,27 +13,21 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 RUN rustup target add "$(uname -m)"-unknown-linux-musl
-RUN cargo build --bin get_metadata --bin img2epub --bin server --release --target "$(uname -m)"-unknown-linux-musl
+RUN cargo build --bin get_metadata --bin img2epub --bin epub2img --bin server --release --target "$(uname -m)"-unknown-linux-musl
 RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/get_metadata -o /get_metadata
 RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/img2epub -o /img2epub
+RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/epub2img -o /epub2img
 RUN strip /app/target/"$(uname -m)"-unknown-linux-musl/release/server -o /server
 
-FROM scratch AS get_metadata
+FROM alpine AS converter
 COPY --from=builder /get_metadata /get_metadata
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-ENTRYPOINT ["/get_metadata"]
-
-FROM alpine AS img2epub
 COPY --from=builder /img2epub /img2epub
-RUN apk add --no-cache ca-certificates tar zip
-RUN update-ca-certificates
-ENTRYPOINT ["/img2epub"]
-
-FROM alpine AS epub2img
 COPY --from=builder /epub2img /epub2img
-RUN apk add --no-cache ca-certificates tar unzip
+COPY ./convert.sh /convert.sh
+RUN apk add --no-cache ca-certificates curl tar zip unzip
 RUN update-ca-certificates
-ENTRYPOINT ["/epub2img"]
+RUN chmod +x /convert.sh
+ENTRYPOINT ["/convert.sh"]
 
 FROM scratch AS server
 WORKDIR /app

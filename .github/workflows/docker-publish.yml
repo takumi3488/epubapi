@@ -47,44 +47,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Extract Docker metadata (get_metadata)
-        id: meta-get_metadata
+      - name: Extract Docker metadata (converter)
+        id: meta-converter
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/epubapi-get-metadata)
 
-      - name: Build and push Docker image (get_metadata)
-        id: build-and-push-get_metadata
+      - name: Build and push Docker image (converter)
+        id: build-and-push-converter
         uses: docker/build-push-action@v5
         with:
           context: .
-          target: get_metadata
+          target: converter
           push: true
           tags: ghcr.io/takumi3488/epubapi-get-metadata:${{ github.sha }}
-          labels: ${{ steps.meta-get_metadata.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
-      - name: Extract Docker metadata (img2epub)
-        id: meta-img2epub
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/epubapi-img2epub
-
-      - name: Extract Docker metadata (epub2img)
-        id: meta-epub2img
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/epubapi-epub2img
-
-      - name: Build and push Docker image (img2epub)
-        id: build-and-push-img2epub
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          target: img2epub
-          push: true
-          tags: ghcr.io/takumi3488/epubapi-img2epub:${{ github.sha }}
-          labels: ${{ steps.meta-img2epub.outputs.labels }}
+          labels: ${{ steps.meta-converter.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
