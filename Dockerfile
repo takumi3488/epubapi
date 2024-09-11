@@ -26,7 +26,7 @@ COPY --from=builder /img2epub /img2epub
 COPY --from=builder /epub2img /epub2img
 COPY --from=builder /usr/local/cargo/bin/cavif /usr/local/bin/cavif
 COPY ./convert.sh /convert.sh
-RUN apk add --no-cache ca-certificates curl tar zip unzip
+RUN apk add --no-cache ca-certificates curl tar zip unzip nasm
 RUN update-ca-certificates
 RUN chmod +x /convert.sh
 ENTRYPOINT ["/convert.sh"]
