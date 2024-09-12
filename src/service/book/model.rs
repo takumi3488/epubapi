@@ -258,10 +258,11 @@ pub async fn get_book_details(
         .bucket(&epub_bucket)
         .key(book.key.clone())
         .presigned(PresigningConfig::expires_in(Duration::from_secs(60 * 60 * 24 * 7)).unwrap());
+    let images_bucket = env::var("OUT_IMAGES_BUCKET").unwrap();
     let presign_images_task = book.images.iter().map(|image| {
         minio_client
             .get_object()
-            .bucket(&epub_bucket)
+            .bucket(&images_bucket)
             .key(image.clone())
             .presigned(PresigningConfig::expires_in(Duration::from_secs(60 * 60 * 24 * 7)).unwrap())
     });

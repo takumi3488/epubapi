@@ -6,7 +6,6 @@ use epubapi::{
 };
 use std::{
     env::var,
-    error::Error,
     fs::{read_to_string, File},
     io::Write,
     path::Path,
@@ -15,7 +14,7 @@ use std::{
 use tokio::fs::create_dir_all;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() {
     println!("epub2img start");
 
     // 環境変数の読み込み
@@ -28,7 +27,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let db = connect_db().await;
 
     // 未処理のbookのkeyを取得する
-    let books = get_books_without_layout(&db).await?;
+    let books = get_books_without_layout(&db)
+        .await
+        .expect("Failed to get books");
 
     // Minioクライアントの初期化
     let minio_client = get_client(&endpoint).await;
@@ -42,15 +43,23 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .bucket(epub_bucket)
             .key(&book.key)
             .send()
-            .await?;
+            .await
+            .expect("Failed to get epub file");
         let file_path = format!("/tmp/{}", book.key);
         println!("file_path: {}", file_path);
         create_dir_all(Path::new(&file_path).parent().unwrap())
             .await
             .expect("Failed to create dir");
         let mut epub_file = File::create(&file_path).expect("Failed to create epub file to write");
-        while let Some(bytes) = epub_stream.body.try_next().await? {
-            epub_file.write_all(&bytes)?;
+        while let Some(bytes) = epub_stream
+            .body
+            .try_next()
+            .await
+            .expect("Failed to read epub stream")
+        {
+            epub_file
+                .write_all(&bytes)
+                .expect("Failed to write epub file");
         }
 
         // epubを展開
@@ -69,7 +78,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let content_path = roxmltree::Document::parse(
             &read_to_string(format!("{}/META-INF/container.xml", work_dir))
                 .expect("container.xmlが見つかりませんでした"),
-        )?
+        )
+        .expect("Failed to parse container.xml")
         .descendants()
         .find(|n| n.tag_name().name() == "rootfile")
         .unwrap()
@@ -79,17 +89,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let content_path = Path::new(&work_dir).join(&content_path);
 
         // rendition:layout が pre-paginated であるか確認
-        let layout = roxmltree::Document::parse(&read_to_string(&content_path)?)?
-            .descendants()
-            .find(|n| {
-                n.tag_name().name() == "meta" && n.attribute("property") == Some("rendition:layout")
-            })
-            .map(|n| n.text().unwrap())
-            .unwrap_or("reflowable")
-            .to_string();
+        let layout = roxmltree::Document::parse(
+            &read_to_string(&content_path).expect("content.opf could not found"),
+        )
+        .expect("Failed to parse content.opf")
+        .descendants()
+        .find(|n| {
+            n.tag_name().name() == "meta" && n.attribute("property") == Some("rendition:layout")
+        })
+        .map(|n| n.text().unwrap())
+        .unwrap_or("reflowable")
+        .to_string();
         if &layout == "reflowable" {
             // DBのみ更新して終了
-            update_book_images(&book.id, BookLayout::Reflowable, Vec::new(), &db).await?;
+            update_book_images(&book.id, BookLayout::Reflowable, Vec::new(), &db)
+                .await
+                .expect("Failed to update book");
             println!("skip reflowable book: {}", book.key);
             continue;
         } else if &layout != "pre-paginated" {
@@ -172,8 +187,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         // DBを更新
-        update_book_images(&book.id, BookLayout::PrePaginated, keys, &db).await?;
+        update_book_images(&book.id, BookLayout::PrePaginated, keys, &db)
+            .await
+            .expect("Failed to update book");
     }
-
-    Ok(())
 }
