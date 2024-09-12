@@ -16,7 +16,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_client() {
-        let bucekt_name = var("IMAGES_BUCKET").expect("IMAGES_BUCKET is not set");
+        let bucket_name = var("IMAGES_BUCKET").expect("IMAGES_BUCKET is not set");
         let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
         let client = get_client(&endpoint).await;
 
@@ -28,12 +28,12 @@ mod tests {
             .buckets
             .unwrap()
             .iter()
-            .any(|b| b.name == Some(bucekt_name.clone())));
+            .any(|b| b.name == Some(bucket_name.clone())));
 
         // オブジェクト一覧を取得する
         client
             .list_objects()
-            .bucket(bucekt_name)
+            .bucket(bucket_name)
             .send()
             .await
             .unwrap();
