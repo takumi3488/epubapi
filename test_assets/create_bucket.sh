@@ -6,4 +6,3 @@ for f in /images/test*.tar.gz; do
 done
 mc ls minio/$EPUB_BUCKET || mc mb minio/$EPUB_BUCKET
 mc ls minio/$OUT_IMAGES_BUCKET || mc mb minio/$OUT_IMAGES_BUCKET
-
