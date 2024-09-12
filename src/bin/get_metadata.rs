@@ -1,4 +1,5 @@
 use aws_sdk_s3::primitives::ByteStream;
+use chrono::Local;
 use epub::doc::EpubDoc;
 use epubapi::{db::connect_db, minio::get_client, service::book::model::Direction};
 use sqlx::query;
@@ -12,6 +13,7 @@ use uuid::Uuid;
 
 #[tokio::main]
 async fn main() {
+    println!("get_metadata start");
     // 環境変数の読み込み
     let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let epub_bucket: &str = &var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
@@ -149,7 +151,7 @@ async fn main() {
                 metadata.mdata("title").unwrap(),
                 metadata.mdata("creator").unwrap_or_default(),
                 metadata.mdata("publisher").unwrap_or_default(),
-                metadata.mdata("date").unwrap(),
+                metadata.mdata("date").unwrap_or(Local::now().to_rfc3339()),
                 cover_image_key,
                 direction as _,
             )

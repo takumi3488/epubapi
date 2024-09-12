@@ -16,50 +16,13 @@ env:
 
 tasks:
   default:
+    aliases:
+      - all
+      - ci
     cmds:
-      - task: all
-
-  install:docker:
-    cmds:
-      - brew upgrade
-      - brew install docker docker-compose colima
-      - mkdir -p $HOME/.docker/cli-plugins
-      - ln -sfn $HOMEBREW_PREFIX/otp/docker-compose/bin/docker-compose $HOME/.docker/cli-plugins/docker-compose
-      - sudo curl -L -o $(brew --prefix lima)/bin/limactl "https://github.com/mikekazakov/lima-nohvf/raw/master/limactl"
-      - sudo chmod +x $(brew --prefix lima)/bin/limactl
-      - colima start --network-address --arch arm64 --vm-type qemu
-
-  install:sqlx-cli:
-    cmds:
-      - cargo install sqlx-cli --no-default-features --features native-tls,postgres
-  
-  install:julia:
-    cmds:
-      - curl -fsSL https://install.julialang.org | sh -s -- -y
-      - $HOME/.juliaup/bin/julia -e 'using Pkg; Pkg.add("Plots"); Pkg.add("Metal")'
-      - echo 'export PATH="$HOME/.juliaup/bin:$PATH"' >> $HOME/.zshrc
-
-  ci:prepare:
-    cmds:
-      - mkdir -p ${HOME}/.local/bin
-
-  ci:
-    deps:
-      - install:docker
-      - install:sqlx-cli
-      - install:julia
-    cmds:
-      - zsh -c ". $HOME/.zshrc && cd test_assets && julia gen_test_data.jl"
-      - docker-compose down
-      - docker-compose up --build -d minio postgres
-      - docker-compose up --build create_bucket
-      - cargo build
-      - cargo sqlx prepare --database-url ${DATABASE_URL}
-      - cargo run --bin gen_schema > openapi.json
-      - cargo run --bin img2epub
-      - cargo run --bin get_metadata
-      - cargo run --bin epub2img
-      - cargo test
+      - task: rebuild
+      - docker compose up --build converter
+      - task: test
 
   serve:
     cmds:
@@ -76,7 +39,6 @@ tasks:
 
   rebuild:
     cmds:
-      - zsh -c ". $HOME/.zshrc && cd test_assets && julia gen_test_data.jl"
       - docker compose down
       - task: up
 
@@ -101,14 +63,6 @@ tasks:
       - task: sqlx
       - cargo check
       - task: schema
-
-  all:
-    cmds:
-      - task: rebuild
-      - cargo run --bin img2epub
-      - cargo run --bin get_metadata
-      - cargo run --bin epub2img
-      - task: test
 
   tmp:
     cmds:
