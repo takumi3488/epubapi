@@ -51,7 +51,7 @@ jobs:
         id: meta-converter
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/epubapi-get-metadata)
+          images: ${{ env.REGISTRY }}/epubapi-converter)
 
       - name: Build and push Docker image (converter)
         id: build-and-push-converter
@@ -60,7 +60,7 @@ jobs:
           context: .
           target: converter
           push: true
-          tags: ghcr.io/takumi3488/epubapi-get-metadata:${{ github.sha }}
+          tags: ghcr.io/takumi3488/epubapi-converter:${{ github.sha }}
           labels: ${{ steps.meta-converter.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
