@@ -49,7 +49,7 @@ for i in 1:N
     end
 
     # メタデータ
-    json = """{"title":"Test Title $i","creator":"Test Creator $i","publisher":"Test Publisher $i","date":"2000-01-01T00:00:00Z","is_rtl":$((i % 2) == 0 ? "true" : "false")}"""
+    json = """{"title":"Test Title $i","creator":"Test Creator $i","publisher":"Test Publisher $i","date":"2000-01-01T00:00:00Z","is_rtl":$((i % 2) == 0 ? "true" : "false"),"tags":["tag1","tag2","tag3"]}"""
     write("metadata.json", json)
 
     # 圧縮
