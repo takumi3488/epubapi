@@ -2,7 +2,7 @@ use aws_sdk_s3::primitives::ByteStream;
 use chrono::Local;
 use epub::doc::EpubDoc;
 use epubapi::{db::connect_db, minio::get_client, service::book::model::Direction};
-use sqlx::query;
+use sqlx::{query, query_as};
 use std::{
     env::var,
     fs::File,
@@ -10,6 +10,11 @@ use std::{
 };
 use tokio::fs::create_dir;
 use uuid::Uuid;
+
+#[derive(sqlx::FromRow)]
+struct Tag {
+    name: String,
+}
 
 #[tokio::main]
 async fn main() {
@@ -42,6 +47,15 @@ async fn main() {
 
     println!("user_ids: {:?}", user_ids);
     println!("book_keys: {:?}", book_keys);
+
+    // 投稿済みのtagを取得する
+    let mut exist_tags = query_as!(Tag, "SELECT name FROM tags")
+        .fetch_all(&db_client)
+        .await
+        .unwrap()
+        .iter()
+        .map(|tag| tag.name.clone())
+        .collect::<Vec<String>>();
 
     // epub_bucketに未処理のオブジェクトがあれば処理する
     let mut response = minio_client
@@ -94,6 +108,27 @@ async fn main() {
             } else {
                 Direction::Ltr
             };
+
+            // タグを取得する
+            let res = minio_client
+                .get_object()
+                .bucket(epub_bucket)
+                .key(format!("{}.tags", key.replace(".epub", "")))
+                .send()
+                .await
+                .unwrap();
+            let tags_bytes = res.body.bytes().expect("Failed to get tags");
+            let tags = String::from_utf8(tags_bytes.to_vec())
+                .unwrap()
+                .split('\n')
+                .filter_map(|tag| {
+                    if tag.is_empty() {
+                        None
+                    } else {
+                        Some(tag.to_string())
+                    }
+                })
+                .collect::<Vec<String>>();
 
             // カバー画像をMinioに保存する
             let cover_image_bytes = metadata.get_cover().unwrap().0;
@@ -160,6 +195,25 @@ async fn main() {
             .unwrap();
 
             println!("{}のメタデータを保存しました", key);
+
+            // tagをDBに保存する
+            for tag in tags {
+                if exist_tags.iter().any(|t| t == &tag) {
+                    query!(r#"INSERT INTO tags (name) VALUES ($1)"#, tag)
+                        .execute(&db_client)
+                        .await
+                        .unwrap();
+                    exist_tags.push(tag.clone());
+                }
+                query!(
+                    r#"INSERT INTO book_tags (book_id, tag_name) VALUES ($1, $2)"#,
+                    uuid,
+                    tag
+                )
+                .execute(&db_client)
+                .await
+                .unwrap();
+            }
 
             // /tmpのファイルを削除する
             std::fs::remove_file(&tmp_path).unwrap();

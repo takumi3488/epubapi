@@ -11,7 +11,13 @@ use std::{
 use aws_sdk_s3::primitives::ByteStream;
 
 use img2epub::img2epub;
+use serde::Deserialize;
 use uuid::Uuid;
+
+#[derive(Deserialize)]
+struct Metadata {
+    tags: Vec<String>,
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -64,7 +70,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let out = key.as_str().replace(".tar.gz", ".epub");
 
         // ByteStreamに変換する
-        let body: ByteStream = convert_to_epub(uuid, body, key_base, &out_base).await?;
+        let (body, tags) = convert_to_epub_with_tags(uuid, body, key_base, &out_base).await?;
 
         // オブジェクトのアップロード
         minio_client
@@ -72,6 +78,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .bucket(epub_bucket)
             .key(&out)
             .body(body)
+            .send()
+            .await?;
+
+        // tagsファイルをアップロードする
+        minio_client
+            .put_object()
+            .bucket(epub_bucket)
+            .key(format!("{}.tags", out.replace(".epub", "")))
+            .body(tags)
             .send()
             .await?;
 
@@ -94,16 +109,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
 /// 1. 作業ディレクトリを作成する
 /// 2. .tar.gzを保存する
 /// 3. .tar.gzを解凍する
-/// 4. 解凍したファイルをepubに変換する
-/// 5. 作業ディレクトリを削除する
-/// 6. ByteStreamに変換する
-/// 7. ByteStreamを返す
-async fn convert_to_epub(
+/// 4. 解凍したファイルからtagsを取得する
+/// 5. 解凍したファイルをepubに変換する
+/// 6. 作業ディレクトリを削除する
+/// 7. ByteStreamに変換する
+/// 8. ByteStreamとtagsを返す
+async fn convert_to_epub_with_tags(
     uuid: Uuid,           // ランダムなUUID
     mut body: ByteStream, // .tar.gzのByteStream
     name: &str,           // .tar.gzのファイル名
     out: &str,            // epubのファイル名
-) -> Result<ByteStream, Box<dyn Error>> {
+) -> Result<(ByteStream, ByteStream), Box<dyn Error>> {
     println!("Start converting to epub: {} → {}", name, out);
 
     // 作業ディレクトリを作成する
@@ -127,6 +143,25 @@ async fn convert_to_epub(
         .wait()
         .expect("Failed to wait for command");
 
+    // 解凍したファイルからtagsを取得する
+    let tags = match File::open(format!("{}/metadata.json", work_dir)) {
+        Ok(mut file) => {
+            let mut buf = String::new();
+            match file.read_to_string(&mut buf) {
+                Ok(_) => {
+                    let metadata: Metadata =
+                        serde_json::from_str(&buf).expect("Failed to parse JSON");
+                    metadata.tags
+                }
+                Err(_) => Vec::new(),
+            }
+        }
+        Err(_) => Vec::new(),
+    }
+    .join("\n")
+    .into_bytes();
+    let tags = ByteStream::from(tags);
+
     // 解凍したファイルをepubに変換する
     let out = format!("{}/{}", work_dir, out);
     img2epub(&work_dir, &out, None, None, None, None, None).expect("Failed to convert to epub");
@@ -140,7 +175,7 @@ async fn convert_to_epub(
     // 作業ディレクトリを削除する
     remove_dir_all(&work_dir).expect("Failed to remove work directory");
 
-    Ok(bs)
+    Ok((bs, tags))
 }
 
 #[cfg(test)]
@@ -150,14 +185,15 @@ mod tests {
 
     #[tokio::test]
     /// convert_to_epubのテスト
-    async fn test_convert_to_epub() {
+    async fn test_convert_to_epub_with_tags() {
         let uuid = Uuid::new_v4();
         let body = ByteStream::from_path(Path::new("./test_assets/images/test1.tar.gz"))
             .await
             .unwrap();
-        let mut body: ByteStream = convert_to_epub(uuid, body, "test1.tar.gz", "test.epub")
-            .await
-            .unwrap();
+        let (mut body, mut tags) =
+            convert_to_epub_with_tags(uuid, body, "test1.tar.gz", "test.epub")
+                .await
+                .unwrap();
 
         // バイナリを見てZIPファイルかどうかを確認する
         let mut buf = Vec::new();
@@ -165,5 +201,12 @@ mod tests {
             buf.extend(chunk.unwrap());
         }
         assert_eq!(buf[0..2], [0x50, 0x4b]);
+
+        // tagsを見て内容が正しいかを確認する
+        let mut buf = Vec::new();
+        while let Some(chunk) = tags.next().await {
+            buf.extend(chunk.unwrap());
+        }
+        assert_eq!(buf, b"tag1\ntag2\ntag3");
     }
 }
