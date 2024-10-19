@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.0",
   "info": {
     "title": "epubapi",
     "description": "",
@@ -23,9 +23,11 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "null"
+              ],
               "format": "int32",
-              "nullable": true,
               "minimum": 0
             },
             "style": "form"
@@ -35,8 +37,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "nullable": true
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -45,8 +49,10 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
-              "nullable": true
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           }
@@ -241,7 +247,10 @@
                       }
                     },
                     "layout": {
-                      "allOf": [
+                      "oneOf": [
+                        {
+                          "type": "null"
+                        },
                         {
                           "type": "string",
                           "enum": [
@@ -249,8 +258,7 @@
                             "PrePaginated"
                           ]
                         }
-                      ],
-                      "nullable": true
+                      ]
                     },
                     "name": {
                       "type": "string"
@@ -1140,18 +1148,24 @@
         "type": "object",
         "properties": {
           "keyword": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "page": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32",
-            "nullable": true,
             "minimum": 0
           },
           "tag": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -1259,7 +1273,10 @@
             }
           },
           "layout": {
-            "allOf": [
+            "oneOf": [
+              {
+                "type": "null"
+              },
               {
                 "type": "string",
                 "enum": [
@@ -1267,8 +1284,7 @@
                   "PrePaginated"
                 ]
               }
-            ],
-            "nullable": true
+            ]
           },
           "name": {
             "type": "string"
