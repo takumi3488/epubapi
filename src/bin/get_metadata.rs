@@ -116,6 +116,7 @@ async fn main() {
                 .send()
                 .await
                 .unwrap();
+            println!("tags response: {:?}", res);
             let tags_bytes = res.body.bytes().expect("Failed to get tags");
             let tags = String::from_utf8(tags_bytes.to_vec())
                 .unwrap()
