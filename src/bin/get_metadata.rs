@@ -109,17 +109,18 @@ async fn main() {
             };
 
             // タグを取得する
-            let res = minio_client
+            let mut res = minio_client
                 .get_object()
                 .bucket(epub_bucket)
                 .key(key.replace(".epub", ".tags"))
                 .send()
                 .await
                 .unwrap();
-            println!("tags response: {:?}", res);
-            let tags_bytes = res.body.bytes().expect("Failed to get tags");
-            let tags = String::from_utf8(tags_bytes.to_vec())
-                .unwrap()
+            let mut tags = String::new();
+            while let Some(bytes) = res.body.try_next().await.unwrap() {
+                tags.push_str(&String::from_utf8(bytes.to_vec()).unwrap());
+            }
+            let tags = tags
                 .split('\n')
                 .filter_map(|tag| {
                     if tag.is_empty() {
