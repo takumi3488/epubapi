@@ -1826,9 +1826,9 @@ dependencies = [
 
 [[package]]
 name = "img2epub"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5b76ef03db6511aed37faa90dc6e45909eeb19ef97cf0a617b5dc83f7329a61"
+checksum = "70319ebd9205d863270d288ed209a4e25288f1b9ae162398e9cfeeda9bb76efe"
 dependencies = [
  "chrono",
  "clap",
@@ -3003,9 +3003,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.130"
+version = "1.0.131"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "610f75ff4a8e3cb29b85da56eabdd1bff5b06739059a4b8e2967fef32e5d9944"
+checksum = "67d42a0bd4ac281beff598909bb56a86acaf979b84483e1c79c10dcaf98f8cf3"
 dependencies = [
  "itoa",
  "memchr",
