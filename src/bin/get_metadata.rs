@@ -72,15 +72,12 @@ async fn main() {
         };
 
         // 存在するユーザーIDで存在しないブックKEYのオブジェクトを処理する
-        for object in objects
-            .iter()
-            .filter(|&object| {
-                let key = object.key().unwrap().to_string();
-                !book_keys.contains(&key)
-                    && key.ends_with(".epub")
-                    && user_ids.contains(&key.split("/").next().unwrap().to_string())
-            })
-        {
+        for object in objects.iter().filter(|&object| {
+            let key = object.key().unwrap().to_string();
+            !book_keys.contains(&key)
+                && key.ends_with(".epub")
+                && user_ids.contains(&key.split("/").next().unwrap().to_string())
+        }) {
             let key = object.key().unwrap();
             println!("{}のメタデータを取得中...", key);
             let uuid = Uuid::new_v4().to_string();
