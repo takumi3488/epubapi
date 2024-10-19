@@ -159,6 +159,7 @@ async fn main() {
                 .unwrap();
 
             // メタデータをDBに保存する
+            let mut tx = db_client.begin().await.expect("transaction error.");
             query!(
                 r#"INSERT INTO books (
                     id,
@@ -191,7 +192,7 @@ async fn main() {
                 cover_image_key,
                 direction as _,
             )
-            .execute(&db_client)
+            .execute(&mut *tx)
             .await
             .unwrap();
 
@@ -199,9 +200,9 @@ async fn main() {
 
             // tagをDBに保存する
             for tag in tags {
-                if exist_tags.iter().any(|t| t == &tag) {
+                if exist_tags.iter().all(|t| t != &tag) {
                     query!(r#"INSERT INTO tags (name) VALUES ($1)"#, tag)
-                        .execute(&db_client)
+                        .execute(&mut *tx)
                         .await
                         .unwrap();
                     exist_tags.push(tag.clone());
@@ -211,10 +212,12 @@ async fn main() {
                     uuid,
                     tag
                 )
-                .execute(&db_client)
+                .execute(&mut *tx)
                 .await
                 .unwrap();
             }
+
+            tx.commit().await.unwrap();
 
             // /tmpのファイルを削除する
             std::fs::remove_file(&tmp_path).unwrap();
