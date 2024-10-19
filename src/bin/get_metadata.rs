@@ -74,9 +74,11 @@ async fn main() {
         // 存在するユーザーIDで存在しないブックKEYのオブジェクトを処理する
         for object in objects
             .iter()
-            .filter(|&object| !book_keys.contains(&object.key().unwrap().to_string()))
             .filter(|&object| {
-                user_ids.contains(&object.key().unwrap().split("/").next().unwrap().to_string())
+                let key = object.key().unwrap().to_string();
+                !book_keys.contains(&key)
+                    && key.ends_with(".epub")
+                    && user_ids.contains(&key.split("/").next().unwrap().to_string())
             })
         {
             let key = object.key().unwrap();
@@ -113,11 +115,10 @@ async fn main() {
             let res = minio_client
                 .get_object()
                 .bucket(epub_bucket)
-                .key(format!("{}.tags", key.replace(".epub", "")))
+                .key(key.replace(".epub", ".tags"))
                 .send()
                 .await
                 .unwrap();
-            println!("tags: {:?}", res.body.bytes());
             let tags_bytes = res.body.bytes().expect("Failed to get tags");
             let tags = String::from_utf8(tags_bytes.to_vec())
                 .unwrap()
