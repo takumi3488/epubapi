@@ -19,14 +19,14 @@ ctor = "0.2.8"
 epub = "2.1.2"
 futures = "0.3.31"
 image = "0.25.4"
-img2epub = "0.1.11"
+img2epub = "0.1.12"
 jsonwebtoken = "9.3.0"
 log = "0.4.22"
 mime = "0.3.17"
 regex = "1.11.0"
 roxmltree = "0.20.0"
 serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.131"
+serde_json = "1.0.132"
 sqlx = { version = "0.8.2", features = [
     "postgres",
     "uuid",
