@@ -32,6 +32,7 @@ services:
       IMAGES_BUCKET: "images-bucket"
       OUT_IMAGES_BUCKET: "out-images-bucket"
       EPUB_BUCKET: "epub-bucket"
+      UNCONVERTABLE_IMAGES_BUCKET: "unconvertable-images-bucket"
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: minio123

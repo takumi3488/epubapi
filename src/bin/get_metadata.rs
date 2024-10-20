@@ -118,7 +118,7 @@ async fn main() {
                 .unwrap();
             let mut tags = String::new();
             while let Some(bytes) = res.body.try_next().await.unwrap() {
-                tags.push_str(&String::from_utf8(bytes.to_vec()).unwrap());
+                tags.push_str(core::str::from_utf8(&bytes).unwrap());
             }
             let tags = tags
                 .split('\n')

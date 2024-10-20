@@ -26,6 +26,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let endpoint = var("S3_ENDPOINT").expect("S3_ENDPOINT is not set");
     let images_bucket: &str = &var("IMAGES_BUCKET").expect("IMAGES_BUCKET is not set");
     let epub_bucket: &str = &var("EPUB_BUCKET").expect("EPUB_BUCKET is not set");
+    let unconvertable_images_bucket: &str =
+        &var("UNCONVERTABLE_IMAGES_BUCKET").expect("UNCONVERTABLE_IMAGES_BUCKET is not set");
 
     // クライアントの初期化
     let minio_client = get_client(&endpoint).await;
@@ -70,7 +72,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let out = key.as_str().replace(".tar.gz", ".epub");
 
         // ByteStreamに変換する
-        let (body, tags) = convert_to_epub_with_tags(uuid, body, key_base, &out_base).await?;
+        let (body, tags) = match convert_to_epub_with_tags(uuid, body, key_base, &out_base).await {
+            Ok((body, tags)) => (body, tags),
+            Err(e) => {
+                if e.to_string().contains("No image files found") {
+                    println!("No image files found: {}", key);
+                    minio_client
+                        .copy_object()
+                        .copy_source(format!("{}/{}", images_bucket, key))
+                        .bucket(unconvertable_images_bucket)
+                        .key(&key)
+                        .send()
+                        .await?;
+                    minio_client
+                        .delete_object()
+                        .bucket(images_bucket)
+                        .key(&key)
+                        .send()
+                        .await?;
+                }
+                continue;
+            }
+        };
 
         // オブジェクトのアップロード
         minio_client
@@ -164,7 +187,7 @@ async fn convert_to_epub_with_tags(
 
     // 解凍したファイルをepubに変換する
     let out = format!("{}/{}", work_dir, out);
-    img2epub(&work_dir, &out, None, None, None, None, None).expect("Failed to convert to epub");
+    img2epub(&work_dir, &out, None, None, None, None, None)?;
 
     // ByteStreamに変換する
     let mut file = File::open(&out).expect("Failed to open file");
