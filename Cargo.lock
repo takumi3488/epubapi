@@ -1826,9 +1826,9 @@ dependencies = [
 
 [[package]]
 name = "img2epub"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df3a7c9e5bc596b84a94ca77ae21203723f4e93ee47e816ee783ff35a5f96e4b"
+checksum = "61139ea3b3e249b7ec0df21dd581dc9e545b12f23b8cdb1c1eb8701cb6e36f82"
 dependencies = [
  "chrono",
  "clap",
