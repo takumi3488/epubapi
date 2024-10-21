@@ -172,9 +172,9 @@ async fn convert_to_epub_with_tags(
             let mut buf = String::new();
             match file.read_to_string(&mut buf) {
                 Ok(_) => {
+                    println!("metadata.json: {}", &buf);
                     let metadata: Metadata =
                         serde_json::from_str(&buf).expect("Failed to parse JSON");
-                    println!("{:?}", metadata);
                     metadata.tags
                 }
                 Err(_) => Vec::new(),
