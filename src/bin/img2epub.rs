@@ -14,7 +14,7 @@ use img2epub::img2epub;
 use serde::Deserialize;
 use uuid::Uuid;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct Metadata {
     tags: Vec<String>,
 }
@@ -174,6 +174,7 @@ async fn convert_to_epub_with_tags(
                 Ok(_) => {
                     let metadata: Metadata =
                         serde_json::from_str(&buf).expect("Failed to parse JSON");
+                    println!("{:?}", metadata);
                     metadata.tags
                 }
                 Err(_) => Vec::new(),
