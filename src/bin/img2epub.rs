@@ -1,11 +1,11 @@
 use epubapi::minio::get_client;
+use tokio::process::Command;
 
 use std::{
     env::var,
     error::Error,
     fs::{create_dir_all, remove_dir_all, File},
     io::{Read, Write},
-    process::Command,
 };
 
 use aws_sdk_s3::primitives::ByteStream;
@@ -161,9 +161,8 @@ async fn convert_to_epub_with_tags(
         .arg("-xvf")
         .arg(name)
         .current_dir(&work_dir)
-        .spawn()
-        .expect("Failed to execute command")
-        .wait()
+        .output()
+        .await
         .expect("Failed to wait for command");
 
     // 解凍したファイルからtagsを取得する
