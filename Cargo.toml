@@ -6,28 +6,28 @@ default-run = "server"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aws-config = { version = "1.5.8", features = [
+aws-config = { version = "1.5.13", features = [
     "behavior-version-latest",
     "rustls",
 ] }
-aws-sdk-s3 = { version = "1.57.0", features = ["rustls"] }
-axum = { version = "0.7.7", features = ["multipart"] }
-axum-test = "16.2.0"
-chrono = { version = "0.4.38", features = ["serde"] }
+aws-sdk-s3 = { version = "1.68.0", features = ["rustls"] }
+axum = { version = "0.8.1", features = ["multipart"] }
+axum-test = "17.0.2"
+chrono = { version = "0.4.39", features = ["serde"] }
 cookie = "0.18.1"
-ctor = "0.2.8"
+ctor = "0.2.9"
 epub = "2.1.2"
 futures = "0.3.31"
-image = "0.25.4"
+image = "0.25.5"
 img2epub = "0.1.17"
 jsonwebtoken = "9.3.0"
 log = "0.4.22"
 mime = "0.3.17"
-regex = "1.11.0"
+regex = "1.11.1"
 roxmltree = "0.20.0"
-serde = { version = "1.0.211", features = ["derive"] }
-serde_json = "1.0.132"
-sqlx = { version = "0.8.2", features = [
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+sqlx = { version = "0.8.3", features = [
     "postgres",
     "uuid",
     "chrono",
@@ -36,12 +36,12 @@ sqlx = { version = "0.8.2", features = [
     "runtime-tokio",
     "migrate",
 ] }
-tokio = { version = "1.41.0", features = ["full"] }
-tower = "0.5.1"
-tower-http = { version = "0.6.1", features = ["fs", "cors"] }
-tracing = "0.1.40"
-utoipa = { version = "5.1.1", features = ["axum_extras"] }
-utoipa-rapidoc = { version = "5.0.0", features = ["axum"] }
-utoipa-redoc = { version = "5.0.0", features = ["axum"] }
-utoipa-swagger-ui = { version = "8.0.2", features = ["axum"] }
-uuid = { version = "1.10.0", features = ["fast-rng", "v4"] }
+tokio = { version = "1.43.0", features = ["full"] }
+tower = "0.5.2"
+tower-http = { version = "0.6.2", features = ["fs", "cors"] }
+tracing = "0.1.41"
+utoipa = { version = "5.3.1", features = ["axum_extras"] }
+utoipa-rapidoc = { version = "5.0.1", features = ["axum"] }
+utoipa-redoc = { version = "5.0.1", features = ["axum"] }
+utoipa-swagger-ui = { version = "8.1.1", features = ["axum"] }
+uuid = { version = "1.11.1", features = ["fast-rng", "v4"] }

@@ -79,7 +79,7 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
         .route("/epubs", post(new_book))
         .route("/check_invitation", post(check_invitation))
         .route("/tags", get(get_tags).post(new_tag))
-        .route("/tags/:name", put(update_tag).delete(delete_tag))
+        .route("/tags/{name}", put(update_tag).delete(delete_tag))
         .route(
             "/books",
             get(get_books)
@@ -87,13 +87,13 @@ pub fn init_app(db: &sqlx::PgPool) -> Router {
                 .layer(DefaultBodyLimit::max(1024 * 1024 * 1024 * 20)),
         )
         .route(
-            "/books/:book_id",
+            "/books/{book_id}",
             get(get_book).patch(update_book).delete(delete_book),
         )
-        .route("/covers/:book_id", get(get_cover_image))
-        .route("/books/:book_id/tags", post(add_tag_to_book))
+        .route("/covers/{book_id}", get(get_cover_image))
+        .route("/books/{book_id}/tags", post(add_tag_to_book))
         .route(
-            "/books/:book_id/tags/:tag_name",
+            "/books/{book_id}/tags/{tag_name}",
             delete(delete_tag_from_book),
         )
         .layer(axum::middleware::from_fn(access_log_on_request))
